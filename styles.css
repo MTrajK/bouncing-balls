@@ -1,0 +1,36 @@
+@media only screen and (max-width: 480px) {
+    #dimensions {
+        margin: 50px auto 0;
+        width: 200px;
+        height: 133px;
+    }
+}
+
+@media only screen and (min-width: 481px) and (max-width: 630px) {
+    #dimensions {
+        margin: 50px auto 0;
+        width: 400px;
+        height: 266px;
+    }
+}
+
+@media only screen and (min-width: 631px) and (max-width: 1500px) {
+    #dimensions {
+        margin: 75px auto 0;
+        width: 600px;
+        height: 399px;
+    }
+}
+
+@media only screen and (min-width: 1501px) {
+    #dimensions {
+        margin: 100px auto 0;
+        width: 900px;
+        height: 600px;
+    }
+}
+
+#canvas:active {
+    cursor: -webkit-grab;
+    cursor: grab;
+}
