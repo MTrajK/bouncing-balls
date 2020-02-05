@@ -1,18 +1,8 @@
-(function () {
+(function (global) {
 
     /**************
     ** CONSTANTS **
     ***************/
-    const canvas = document.getElementById("canvas");
-    const context = canvas.getContext("2d");
-    const canvasDimensions = document.getElementById("dimensions");
-
-    const fps = 60; // frames per second
-    const interval = 1000 / fps; // interval in miliseconds
-    const localDimensions = {
-        width: 100, // local units
-        height: canvasDimensions.offsetHeight / (canvasDimensions.offsetWidth / 100)
-    };
     const aimProperties = {
         maxLength: 15, // local units
         delay: 0.6,
@@ -29,13 +19,17 @@
         airResistance: 0.998, // decreasing of speed in each frame
         hitResistance: 0.8, // decreasing of speed when wall is hit (this shouldn't be a constant)
         startSpeed: 0.05, // speed factor
-        gravity: 9.8 // local units in second
+        gravity: 9.8 // passed local units in one second
     };
 
     /*********************************************************************************
     ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS AND UPDATE FUNCTION **
     /*********************************************************************************/
-    let isLeftMouseBtnDown = false;
+    let updateInterval, canvas, context, canvasDimensions, intervalMs, isLeftMouseBtnDown, newBallSpeed, balls;
+    let localDimensions = { // one localDimensions.width is one local unit
+        width: undefined,
+        height: undefined
+    };
     let mouseCoords = { // X & Y are represented with local units
         X: undefined,
         Y: undefined
@@ -45,11 +39,9 @@
         Y: undefined
     };
     let newBallDirection = { // this is an unit vector
-        X: 0,
-        Y: 0
+        X: undefined,
+        Y: undefined
     };
-    let newBallSpeed = undefined; // distance between newBallCoords and mouseCoords
-    let balls = [];
 
     /************
     ** HELPERS **
@@ -178,10 +170,14 @@
         }
     }
 
-    /***********
-    ** EVENTS **
-    ************/
-    document.onmousemove = function (event) {
+    function updateBallVerticalSpace(idx, dimensions) {
+
+    }
+
+    /********************
+    ** EVENT LISTENERS **
+    *********************/
+    function onMouseMove(event) {
         let eventDoc, doc, body;
 
         event = event || window.event; // IE-ism
@@ -221,32 +217,36 @@
             newBallDirection.X = (newBallCoords.X - mouseCoords.X) / newBallSpeed;
             newBallDirection.Y = (newBallCoords.Y - mouseCoords.Y) / newBallSpeed;
         }
-    };
+    }
 
-    canvas.onmousedown = function (e) {
+    function onMouseDown(e) {
         if (e.button === 0) { // check if the left mouse button is pressed
             isLeftMouseBtnDown = true;
             newBallCoords.X = mouseCoords.X;
             newBallCoords.Y = mouseCoords.Y;
         }
-    };
+    }
 
-    canvas.onmouseup = function () {
+    function onMouseUp() {
         if (isLeftMouseBtnDown)
             shot();
-    };
+    }
 
-    /***********
-    ** UPDATE **
-    ************/
-    setInterval(function () {
+    /******************
+    ** MAIN FUNCTION **
+    *******************/
+    function update() {
         /* updates the canvas in every "interval" miliseconds */
 
-        // get dimensions and clear canvas
-        // (the canvas is erased when the dimensions are changed)
+        // check dimensions and clear canvas
         const dimensions = getCanvasDimensions();
-        canvas.width = dimensions.width;
-        canvas.height = dimensions.height;
+
+        if (canvas.width != dimensions.width) {
+            canvas.width = dimensions.width;
+            canvas.height = dimensions.height;
+        } else {
+            context.clearRect(0, 0, dimensions.width, dimensions.height);
+        }
 
         // draw canvas border
         context.strokeStyle = "#000000";
@@ -266,6 +266,55 @@
             // draw updated ball
             drawBall(balls[i].coords, dimensions.scalePercent);
         }
-    }, interval)
+    }
 
-}());
+    /*********************
+    ** PUBLIC FUNCTIONS **
+    **********************/
+    function init(canvasId, dimensionsId, fps, isHorizontal, enabledCollisions) {
+        fps = fps || 60; // 60 fps default
+        isHorizontal = isHorizontal || true;
+        enabledCollisions = enabledCollisions || false;
+
+        // init parameter
+        canvas =  document.getElementById(canvasId);
+        context = canvas.getContext("2d");
+        canvasDimensions = document.getElementById(dimensionsId);
+        intervalMs = 1000 / fps;
+        isLeftMouseBtnDown = false;
+        localDimensions.width = 100;
+        localDimensions.height = canvasDimensions.offsetHeight / (canvasDimensions.offsetWidth / 100);
+        mouseCoords.X = mouseCoords.Y = undefined;
+        newBallCoords.X = newBallCoords.Y = undefined;
+        newBallDirection.X = newBallDirection.Y = 0;
+        newBallSpeed = undefined;
+        balls = [];
+
+        // add event listeners
+        global.document.addEventListener("mousemove", onMouseMove);
+        canvas.addEventListener("mousedown", onMouseDown);
+        canvas.addEventListener("mouseup", onMouseUp);
+
+        // set interval
+        updateInterval = setInterval(update, intervalMs);
+    }
+
+    function clear() {
+        // remove event listeners
+        global.document.removeEventListener("mousemove", onMouseMove);
+        canvas.removeEventListener("mousedown", onMouseDown);
+        canvas.removeEventListener("mouseup", onMouseUp);
+
+        // clear interval
+        clearInterval(updateInterval);
+
+        // clear canvas
+        canvas.width = canvas.height = 0;
+    }
+
+    global.BouncingBalls = {
+        init: init,
+        clear: clear
+    }
+
+}(window));
