@@ -16,16 +16,17 @@
         fillStyle: "#000000"
     };
     const movementProperties = {
-        airResistance: 0.998, // decreasing of speed in each frame
-        hitResistance: 0.8, // decreasing of speed when wall is hit (this shouldn't be a constant)
-        startSpeed: 0.05, // speed factor
+        maxSpeed: aimProperties.maxLength / aimProperties.delay, // local units
+        horizontalAirResistance: 0.005, // decreasing of speed in each frame
+        horizontalHitResistance: 0.1, // decreasing of speed when hit a wall
+        horizontalSpeedFactor: 0.1, // speed factor
         gravity: 9.8 // passed local units in one second
     };
 
     /*********************************************************************************
     ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS AND UPDATE FUNCTION **
     /*********************************************************************************/
-    let updateInterval, canvas, context, canvasDimensions, intervalMs, isLeftMouseBtnDown, newBallSpeed, balls;
+    let updateInterval, canvas, context, canvasDimensions, intervalMs, isLeftMouseBtnDown, newBallSpeed, balls, isHorizontal, enabledCollisions;
     let localDimensions = { // one localDimensions.width is one local unit
         width: undefined,
         height: undefined
@@ -137,20 +138,20 @@
                 X: newBallDirection.X,
                 Y: newBallDirection.Y
             },
-            speed: newBallSpeed * movementProperties.startSpeed
+            speed: newBallSpeed * movementProperties.horizontalSpeedFactor
         });
 
         // reset coordinates
+        newBallSpeed = 0;
         newBallDirection.X = newBallDirection.Y = 0;
         newBallCoords.X = newBallCoords.Y = undefined;
-        mouseCoords.X = mouseCoords.Y = undefined;
     }
 
     function updateBallHorizontalSpace(idx) {
         balls[idx].coords.X += balls[idx].direction.X * balls[idx].speed;
         balls[idx].coords.Y += balls[idx].direction.Y * balls[idx].speed;
 
-        balls[idx].speed *= movementProperties.airResistance;
+        balls[idx].speed -= movementProperties.horizontalAirResistance;
 
         if (balls[idx].coords.X - ballProperties.radius <= 0 || balls[idx].coords.X + ballProperties.radius >= localDimensions.width) {
             // move ball inside the borders
@@ -158,7 +159,7 @@
                                     ballProperties.radius : localDimensions.width - ballProperties.radius;
 
             balls[idx].direction.X = -balls[idx].direction.X;
-            balls[idx].speed *= movementProperties.hitResistance;
+            balls[idx].speed -= movementProperties.horizontalHitResistance;
         }
         if (balls[idx].coords.Y - ballProperties.radius <= 0 || balls[idx].coords.Y + ballProperties.radius >= localDimensions.height) {
             // move ball inside the borders
@@ -166,12 +167,15 @@
                                     ballProperties.radius : localDimensions.height - ballProperties.radius;
 
             balls[idx].direction.Y = -balls[idx].direction.Y;
-            balls[idx].speed *= movementProperties.hitResistance;
+            balls[idx].speed -= movementProperties.horizontalHitResistance;
         }
+
+        if (balls[idx].speed < 0)
+            balls[idx].speed = 0;
     }
 
     function updateBallVerticalSpace(idx, dimensions) {
-
+        // TODO: Add vertical space logic
     }
 
     /********************
@@ -204,18 +208,27 @@
             Y: event.pageY
         };
         const localCoords = convertToLocalCoordinates(coords, dimensions);
+        mouseCoords.X = localCoords.X;
+        mouseCoords.Y = localCoords.Y;
 
-        // check if the pointer left the canvas
-        if (localCoords.X <= 0 || localCoords.X >= localDimensions.width
-            || localCoords.Y <= 0 || localCoords.Y >= localDimensions.height) {
-            if (isLeftMouseBtnDown) shot();
+        // check where the pointer is located
+        if (mouseCoords.X <= 0 || mouseCoords.X >= localDimensions.width
+            || mouseCoords.Y <= 0 || mouseCoords.Y >= localDimensions.height) {
+            if (isLeftMouseBtnDown)
+                shot();
         } else {
-            mouseCoords.X = localCoords.X;
-            mouseCoords.Y = localCoords.Y;
-            // make the direction an unit vector
-            newBallSpeed = euclideanDistance(newBallCoords, mouseCoords);
-            newBallDirection.X = (newBallCoords.X - mouseCoords.X) / newBallSpeed;
-            newBallDirection.Y = (newBallCoords.Y - mouseCoords.Y) / newBallSpeed;
+            // save new ball properties on mouse down
+            if (isLeftMouseBtnDown) {
+                // make the direction an unit vector
+                newBallSpeed = euclideanDistance(newBallCoords, mouseCoords);
+                newBallDirection.X = (newBallCoords.X - mouseCoords.X) / newBallSpeed;
+                newBallDirection.Y = (newBallCoords.Y - mouseCoords.Y) / newBallSpeed;
+
+                if (newBallSpeed == 0)
+                    newBallDirection.X = newBallDirection.Y = 0;
+                if (newBallSpeed > movementProperties.maxSpeed)
+                    newBallSpeed = movementProperties.maxSpeed;
+            }
         }
     }
 
@@ -262,19 +275,24 @@
 
         for (let i=0; i<balls.length; i++) {
             // update ball
-            updateBallHorizontalSpace(i);
+            if (isHorizontal)
+                updateBallHorizontalSpace(i);
+            else
+                updateBallVerticalSpace(i, dimensions);
             // draw updated ball
             drawBall(balls[i].coords, dimensions.scalePercent);
         }
+
+        // TODO: Check collisions
     }
 
     /*********************
     ** PUBLIC FUNCTIONS **
     **********************/
-    function init(canvasId, dimensionsId, fps, isHorizontal, enabledCollisions) {
+    function init(canvasId, dimensionsId, fps, horizontal, collisions) {
         fps = fps || 60; // 60 fps default
-        isHorizontal = isHorizontal || true;
-        enabledCollisions = enabledCollisions || false;
+        isHorizontal = horizontal || true;
+        enabledCollisions = collisions || false;
 
         // init parameter
         canvas =  document.getElementById(canvasId);
@@ -287,7 +305,7 @@
         mouseCoords.X = mouseCoords.Y = undefined;
         newBallCoords.X = newBallCoords.Y = undefined;
         newBallDirection.X = newBallDirection.Y = 0;
-        newBallSpeed = undefined;
+        newBallSpeed = 0;
         balls = [];
 
         // add event listeners
