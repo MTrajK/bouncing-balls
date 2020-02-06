@@ -7,12 +7,18 @@
         this.Y = y;
     }
 
-    Vector2d.prototype.distance = function(to) {
-        // euclidean distance formula
-        const X = this.X - to.X;
-        const Y = this.Y - to.Y;
+    Vector2d.prototype.direction = function(to) {
+        // direction from this Vector2d to 'to' Vector2d
+        return new Vector2d(
+            to.X - this.X,
+            to.Y - this.Y
+        );
+    }
 
-        return Math.sqrt(X*X + Y*Y);
+    Vector2d.prototype.distance = function(to) {
+        // euclidean distance formula (distance from this Vector2d to 'to' Vector2d)
+        const dir = this.direction(to);
+        return Math.sqrt(dir.X*dir.X + dir.Y*dir.Y);
     }
 
     Vector2d.prototype.convertToLocal = function(dimensions) {

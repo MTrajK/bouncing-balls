@@ -82,11 +82,16 @@
     }
 
     function drawAim(scalePercent) {
-        // convert start and end points in CANVAS coordinates
-        var aimLength = newBallSpeed * aimProperties.delay;
-        if (aimLength > aimProperties.maxLength)
-            aimLength = aimProperties.maxLength;
+        if (newBallSpeed === 0)
+            return; // no direction, the mouse is in the start position
 
+        // calculate the aim length
+        var aimLength = newBallSpeed * aimProperties.delay;
+        // aimLength shoud be smaller or equal to aimProperties.maxLength
+        aimLength = Math.min(aimLength, aimProperties.maxLength);
+
+        // convert start and end points in CANVAS coordinates (using scalePercent)
+        // move the start point on the ball border (using the ball direction)
         const startPoint = new Vector2d(
             (newBallCoords.X + newBallDirection.X * ballProperties.radius) * scalePercent,
             (newBallCoords.Y + newBallDirection.Y * ballProperties.radius) * scalePercent
@@ -97,10 +102,8 @@
         );
 
         // compute head strokes angle
-        const headLength = (aimLength * scalePercent) * aimProperties.headPart; // same as startPoint.distance(endPoint) * aimProperties.headPart
-        const dx = endPoint.X - startPoint.X;
-        const dy = endPoint.Y - startPoint.Y;
-        const angle = Math.atan2(dy, dx);
+        const headLength = (aimLength * scalePercent) * aimProperties.headPart;
+        const angle = Math.atan2(newBallDirection.Y, newBallDirection.X); // angle between X axis and the arrow direction
 
         // draw the arrow
         context.strokeStyle = aimProperties.strokeStyle;
@@ -117,6 +120,9 @@
     }
 
     function updateBallHorizontalSpace(idx) {
+        if (balls[idx].speed < 0)
+            return; // the ball is staying in place
+
         balls[idx].coords.X += balls[idx].direction.X * balls[idx].speed;
         balls[idx].coords.Y += balls[idx].direction.Y * balls[idx].speed;
 
@@ -140,9 +146,6 @@
             // TODO: smaller angle -> smaller hit resistance???
             balls[idx].speed -= movementProperties.horizontalHitResistance;
         }
-
-        if (balls[idx].speed < 0)
-            balls[idx].speed = 0;
     }
 
     /********************
@@ -182,17 +185,16 @@
         } else {
             // save new ball properties on mouse down
             if (isLeftMouseBtnDown) {
-                // make the direction an unit vector
                 newBallSpeed = newBallCoords.distance(mouseCoords);
-                newBallDirection = new Vector2d(
-                    (newBallCoords.X - mouseCoords.X) / newBallSpeed,
-                    (newBallCoords.Y - mouseCoords.Y) / newBallSpeed
-                );
+                newBallDirection = mouseCoords.direction(newBallCoords); // inverse direction
+                // make the direction an unit vector (vector with length of 1)
+                newBallDirection.X /= newBallSpeed;
+                newBallDirection.Y /= newBallSpeed;
 
-                if (newBallSpeed == 0)
-                    newBallDirection = Vector2d.zero();
-                if (newBallSpeed > movementProperties.maxSpeed)
-                    newBallSpeed = movementProperties.maxSpeed;
+                if (newBallSpeed === 0)
+                    newBallDirection = Vector2d.zero(); // the mouse is in the start position
+                // newBallSpeed shoud be smaller or equal to movementProperties.maxSpeed
+                newBallSpeed = Math.min(newBallSpeed, movementProperties.maxSpeed);
             }
         }
     }
@@ -273,7 +275,7 @@
         canvas.addEventListener("mouseup", onMouseUp);
 
         // set interval
-        const intervalMs = 1000 / fps; // interval in miliseconds
+        const intervalMs = 1000 / fps; // interval in milliseconds
         updateInterval = setInterval(update, intervalMs);
     }
 
