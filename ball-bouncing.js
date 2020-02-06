@@ -8,69 +8,57 @@
         width: 100, // one localDimensions.width is 1 local unit
         height: 100 * (2/3) // the canvas ratio is always 3:2
     };
-    const aimProperties = {
-        maxLength: 15, // local units
-        delay: 0.6,
-        headPart: 0.2,
-        strokeStyle: "#000000"
-    };
     const ballProperties = {
         radius: 1, // local units
         startAngle: 0,
         endAngle: 2 * Math.PI,
         fillStyle: "#000000"
     };
-    const movementProperties = {
-        maxSpeed: aimProperties.maxLength / aimProperties.delay, // local units
-        horizontalAirResistance: 0.005, // decreasing of speed in each frame
-        horizontalHitResistance: 0.1, // decreasing of speed when hit a wall
-        horizontalSpeedFactor: 0.1, // speed factor
-        gravity: 9.8 // passed local units in one second
+    const aimProperties = {
+        maxLength: 15, // local units
+        delay: 0.6,
+        maxSpeed: 15 / 0.6, // local units (aimProperties.maxLength / aimProperties.delay)
+        headPart: 0.2,
+        strokeStyle: "#000000"
     };
 
     /*********************************************************************************
     ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS AND UPDATE FUNCTION **
     /*********************************************************************************/
     var updateInterval, canvas, context, canvasDimensions, isLeftMouseBtnDown, newBallSpeed, balls,
-        isHorizontal, enabledCollisions, mouseCoords, newBallCoords, newBallDirection;
+        isHorizontal, enabledCollisions, mousePosition, newBallPosition, newBallDirection;
 
     /************
     ** HELPERS **
     *************/
     function getCanvasDimensions() {
-        const width = canvasDimensions.offsetWidth;
-        const height = canvasDimensions.offsetHeight;
-        const top = canvasDimensions.offsetTop;
-        const left = canvasDimensions.offsetLeft;
-        const bottom = top + height;
-        const right = left + width;
-        const scaleRatio = width / localDimensions.width;
-
         return {
-            width: width,
-            height: height,
-            top: top,
-            bottom: bottom,
-            left: left,
-            right: right,
-            scaleRatio: scaleRatio
+            width: canvasDimensions.offsetWidth,
+            height: canvasDimensions.offsetHeight,
+            top: canvasDimensions.offsetTop,
+            left: canvasDimensions.offsetLeft,
+            scaleRatio: canvasDimensions.offsetWidth / localDimensions.width
         }
     }
 
     function addNewBall() {
         isLeftMouseBtnDown = false;
 
-        // save ball
-        balls.push({
-            coords: newBallCoords.clone(),
-            direction: newBallDirection.clone(), // unit vector
-            speed: newBallSpeed * movementProperties.horizontalSpeedFactor
-        });
+        // save the new ball
+        balls.push(new Ball(
+            newBallPosition.clone(),
+            newBallDirection.clone(), // unit vector
+            newBallSpeed,
+            ballProperties.radius,
+            localDimensions,
+            isHorizontal,
+            enabledCollisions
+        ));
 
         // reset values
         newBallSpeed = 0;
         newBallDirection = Vector2d.zero();
-        newBallCoords = new Vector2d();
+        newBallPosition = new Vector2d();
     }
 
     /************
@@ -97,59 +85,29 @@
         // convert start and end points in CANVAS coordinates (using scaleRatio)
         // move the start point on the ball border (using the ball direction)
         const startPoint = new Vector2d(
-            (newBallCoords.X + newBallDirection.X * ballProperties.radius) * scaleRatio,
-            (newBallCoords.Y + newBallDirection.Y * ballProperties.radius) * scaleRatio
+            (newBallPosition.X + newBallDirection.X * ballProperties.radius) * scaleRatio,
+            (newBallPosition.Y + newBallDirection.Y * ballProperties.radius) * scaleRatio
         );
         const endPoint = new Vector2d(
             startPoint.X + (newBallDirection.X * aimLength) * scaleRatio,
             startPoint.Y + (newBallDirection.Y * aimLength) * scaleRatio
         );
 
-        // compute head strokes angle
+        // calculate head strokes angle
         const headLength = (aimLength * scaleRatio) * aimProperties.headPart;
         const angle = Math.atan2(newBallDirection.Y, newBallDirection.X); // angle between X axis and the arrow direction
 
-        // draw the arrow
         context.strokeStyle = aimProperties.strokeStyle;
         // draw the body
         context.moveTo(startPoint.X, startPoint.Y);
         context.lineTo(endPoint.X, endPoint.Y);
-        // draw the head
+        // draw the head strokes
         context.lineTo(endPoint.X - headLength * Math.cos(angle - Math.PI / 6),
                         endPoint.Y - headLength * Math.sin(angle - Math.PI / 6));
         context.moveTo(endPoint.X, endPoint.Y);
         context.lineTo(endPoint.X - headLength * Math.cos(angle + Math.PI / 6),
                         endPoint.Y - headLength * Math.sin(angle + Math.PI / 6));
         context.stroke();
-    }
-
-    function updateBallHorizontalSpace(idx) {
-        if (balls[idx].speed < 0)
-            return; // the ball is staying in place
-
-        balls[idx].coords.X += balls[idx].direction.X * balls[idx].speed;
-        balls[idx].coords.Y += balls[idx].direction.Y * balls[idx].speed;
-
-        balls[idx].speed -= movementProperties.horizontalAirResistance;
-
-        if (balls[idx].coords.X - ballProperties.radius <= 0 || balls[idx].coords.X + ballProperties.radius >= localDimensions.width) {
-            // move ball inside the borders
-            balls[idx].coords.X = (balls[idx].coords.X - ballProperties.radius <= 0) ?
-                                    ballProperties.radius : localDimensions.width - ballProperties.radius;
-
-            balls[idx].direction.X = -balls[idx].direction.X;
-            // TODO: smaller angle -> smaller hit resistance???
-            balls[idx].speed -= movementProperties.horizontalHitResistance;
-        }
-        if (balls[idx].coords.Y - ballProperties.radius <= 0 || balls[idx].coords.Y + ballProperties.radius >= localDimensions.height) {
-            // move ball inside the borders
-            balls[idx].coords.Y = (balls[idx].coords.Y - ballProperties.radius <= 0) ?
-                                    ballProperties.radius : localDimensions.height - ballProperties.radius;
-
-            balls[idx].direction.Y = -balls[idx].direction.Y;
-            // TODO: smaller angle -> smaller hit resistance???
-            balls[idx].speed -= movementProperties.horizontalHitResistance;
-        }
     }
 
     /********************
@@ -175,30 +133,30 @@
             (doc && doc.clientTop  || body && body.clientTop  || 0 );
         }
 
-        // convert to local coordinates
         const dimensions = getCanvasDimensions();
 
-        mouseCoords = new Vector2d(event.pageX, event.pageY);
-        mouseCoords.convertToLocal(dimensions);
+        // convert mouse coordinates to local coordinates
+        mousePosition = new Vector2d(event.pageX, event.pageY);
+        mousePosition.convertToLocal(dimensions);
 
         // check where the pointer is located
-        if (mouseCoords.X <= 0 || mouseCoords.X >= localDimensions.width
-            || mouseCoords.Y <= 0 || mouseCoords.Y >= localDimensions.height) {
+        if (mousePosition.X <= 0 || mousePosition.X >= localDimensions.width
+            || mousePosition.Y <= 0 || mousePosition.Y >= localDimensions.height) {
             if (isLeftMouseBtnDown)
                 addNewBall();
         } else {
             // save new ball properties on mouse down
             if (isLeftMouseBtnDown) {
-                newBallSpeed = newBallCoords.distance(mouseCoords);
-                newBallDirection = mouseCoords.direction(newBallCoords); // inverse direction
+                newBallSpeed = newBallPosition.distance(mousePosition);
+                newBallDirection = mousePosition.direction(newBallPosition); // inverse direction
                 // make the direction an unit vector (vector with length of 1)
                 newBallDirection.X /= newBallSpeed;
                 newBallDirection.Y /= newBallSpeed;
 
                 if (newBallSpeed === 0)
                     newBallDirection = Vector2d.zero(); // the mouse is in the start position
-                // newBallSpeed shoud be smaller or equal to movementProperties.maxSpeed
-                newBallSpeed = Math.min(newBallSpeed, movementProperties.maxSpeed);
+                // newBallSpeed shoud be smaller or equal to aimProperties.maxSpeed
+                newBallSpeed = Math.min(newBallSpeed, aimProperties.maxSpeed);
             }
         }
     }
@@ -206,7 +164,7 @@
     function onMouseDown(e) {
         if (e.button === 0) { // check if the left mouse button is pressed
             isLeftMouseBtnDown = true;
-            newBallCoords = mouseCoords.clone();
+            newBallPosition = mousePosition.clone();
         }
     }
 
@@ -233,17 +191,17 @@
 
         // aiming mode
         if (isLeftMouseBtnDown) {
-            // draw ball
-            drawBall(newBallCoords, dimensions.scaleRatio);
+            // draw new ball
+            drawBall(newBallPosition, dimensions.scaleRatio);
             // draw aim
             drawAim(dimensions.scaleRatio);
         }
 
         for (var i=0; i<balls.length; i++) {
             // update ball
-            updateBallHorizontalSpace(i);
+            balls[i].update();
             // draw updated ball
-            drawBall(balls[i].coords, dimensions.scaleRatio);
+            drawBall(balls[i].position, dimensions.scaleRatio);
         }
 
         // TODO: Check collisions
@@ -263,8 +221,8 @@
         context = canvas.getContext("2d");
         canvasDimensions = document.getElementById(dimensionsId);
         isLeftMouseBtnDown = false;
-        mouseCoords = new Vector2d(); // X & Y should be represented with local coordinates
-        newBallCoords = new Vector2d(); // X & Y should be represented with local coordinates
+        mousePosition = new Vector2d(); // X & Y should be represented with local coordinates
+        newBallPosition = new Vector2d(); // X & Y should be represented with local coordinates
         newBallDirection = Vector2d.zero(); // this must be an unit vector
         newBallSpeed = 0;
         balls = [];
