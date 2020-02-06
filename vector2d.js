@@ -15,10 +15,26 @@
         );
     }
 
+    Vector2d.prototype.length = function() {
+        // lenght of this Vector2d (Pythagorean theorem)
+        return Math.sqrt(this.X*this.X + this.Y*this.Y)
+    }
+
     Vector2d.prototype.distance = function(to) {
-        // euclidean distance formula (distance from this Vector2d to 'to' Vector2d)
-        const dir = this.direction(to);
-        return Math.sqrt(dir.X*dir.X + dir.Y*dir.Y);
+        // distance from this Vector2d to 'to' Vector2d (Euclidean distance formula)
+        return this.direction(to).length();
+    }
+
+    Vector2d.prototype.angle = function() {
+        // angle between X axis and this Vector2d
+        return Math.atan2(this.X, this.Y);
+    }
+
+    Vector2d.prototype.toUnit = function() {
+        // unit Vector2d, vector with length of 1 (distance between origin and this Vector2d)
+        const length = this.length();
+        this.X /= length;
+        this.Y /= length;
     }
 
     Vector2d.prototype.convertToLocal = function(dimensions) {

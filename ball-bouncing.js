@@ -47,7 +47,7 @@
         // save the new ball
         balls.push(new Ball(
             newBallPosition.clone(),
-            newBallDirection.clone(), // unit vector
+            newBallDirection.clone(), // must be an unit vector
             newBallSpeed,
             ballProperties.radius,
             localDimensions,
@@ -95,18 +95,21 @@
 
         // calculate head strokes angle
         const headLength = (aimLength * scaleRatio) * aimProperties.headPart;
-        const angle = Math.atan2(newBallDirection.Y, newBallDirection.X); // angle between X axis and the arrow direction
+        const arrowAngle = newBallDirection.angle(); // angle between Y axis and the arrow direction
+        const strokeAngle = Math.PI / 5;
+        const leftStrokeAngle = arrowAngle - strokeAngle;
+        const rightStrokeAngle = arrowAngle + strokeAngle;
 
         context.strokeStyle = aimProperties.strokeStyle;
         // draw the body
         context.moveTo(startPoint.X, startPoint.Y);
         context.lineTo(endPoint.X, endPoint.Y);
         // draw the head strokes
-        context.lineTo(endPoint.X - headLength * Math.cos(angle - Math.PI / 6),
-                        endPoint.Y - headLength * Math.sin(angle - Math.PI / 6));
+        context.lineTo(endPoint.X - headLength * Math.sin(leftStrokeAngle),
+                        endPoint.Y - headLength * Math.cos(leftStrokeAngle));
         context.moveTo(endPoint.X, endPoint.Y);
-        context.lineTo(endPoint.X - headLength * Math.cos(angle + Math.PI / 6),
-                        endPoint.Y - headLength * Math.sin(angle + Math.PI / 6));
+        context.lineTo(endPoint.X - headLength * Math.sin(rightStrokeAngle),
+                        endPoint.Y - headLength * Math.cos(rightStrokeAngle));
         context.stroke();
     }
 
@@ -147,11 +150,9 @@
         } else {
             // save new ball properties on mouse down
             if (isLeftMouseBtnDown) {
-                newBallSpeed = newBallPosition.distance(mousePosition);
                 newBallDirection = mousePosition.direction(newBallPosition); // inverse direction
-                // make the direction an unit vector (vector with length of 1)
-                newBallDirection.X /= newBallSpeed;
-                newBallDirection.Y /= newBallSpeed;
+                newBallSpeed = newBallDirection.length(); // the speed is the distance between ball and mouse positions
+                newBallDirection.toUnit();
 
                 if (newBallSpeed === 0)
                     newBallDirection = Vector2d.zero(); // the mouse is in the start position
@@ -197,14 +198,18 @@
             drawAim(dimensions.scaleRatio);
         }
 
-        for (var i=0; i<balls.length; i++) {
-            // update ball
+        // update ball movement
+        for (var i=0; i<balls.length; i++)
             balls[i].update();
-            // draw updated ball
-            drawBall(balls[i].position, dimensions.scaleRatio);
-        }
 
-        // TODO: Check collisions
+        // check collisions (O(N^2) but this can be much faster, search in quadtree structure)
+        for (var i=0; i<balls.length; i++)
+            for (var j=i+1; j<balls.length; j++)
+                balls[i].collision(balls[j]);
+
+        // draw updated balls
+        for (var i=0; i<balls.length; i++)
+            drawBall(balls[i].position, dimensions.scaleRatio);
     }
 
     /*********************
