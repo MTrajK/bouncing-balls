@@ -4,6 +4,10 @@
     /**************
     ** CONSTANTS **
     ***************/
+    const localDimensions = {
+        width: 100, // one localDimensions.width is 1 local unit
+        height: 100 * (2/3) // the canvas ratio is always 3:2
+    };
     const aimProperties = {
         maxLength: 15, // local units
         delay: 0.6,
@@ -28,7 +32,7 @@
     ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS AND UPDATE FUNCTION **
     /*********************************************************************************/
     var updateInterval, canvas, context, canvasDimensions, isLeftMouseBtnDown, newBallSpeed, balls,
-        isHorizontal, enabledCollisions, localDimensions, mouseCoords, newBallCoords, newBallDirection;
+        isHorizontal, enabledCollisions, mouseCoords, newBallCoords, newBallDirection;
 
     /************
     ** HELPERS **
@@ -40,7 +44,7 @@
         const left = canvasDimensions.offsetLeft;
         const bottom = top + height;
         const right = left + width;
-        const scalePercent = width / localDimensions.width;
+        const scaleRatio = width / localDimensions.width;
 
         return {
             width: width,
@@ -49,7 +53,7 @@
             bottom: bottom,
             left: left,
             right: right,
-            scalePercent: scalePercent
+            scaleRatio: scaleRatio
         }
     }
 
@@ -72,16 +76,16 @@
     /************
     ** DRAWING **
     *************/
-    function drawBall(ballCoords, scalePercent) {
+    function drawBall(ballCoords, scaleRatio) {
         context.fillStyle = ballProperties.fillStyle;
         context.beginPath();
-        context.arc(ballCoords.X * scalePercent, ballCoords.Y * scalePercent,   // convert coordinates in CANVAS size
-            ballProperties.radius * scalePercent,
+        context.arc(ballCoords.X * scaleRatio, ballCoords.Y * scaleRatio,   // convert coordinates in CANVAS size
+            ballProperties.radius * scaleRatio,
             ballProperties.startAngle, ballProperties.endAngle);
         context.fill();
     }
 
-    function drawAim(scalePercent) {
+    function drawAim(scaleRatio) {
         if (newBallSpeed === 0)
             return; // no direction, the mouse is in the start position
 
@@ -90,19 +94,19 @@
         // aimLength shoud be smaller or equal to aimProperties.maxLength
         aimLength = Math.min(aimLength, aimProperties.maxLength);
 
-        // convert start and end points in CANVAS coordinates (using scalePercent)
+        // convert start and end points in CANVAS coordinates (using scaleRatio)
         // move the start point on the ball border (using the ball direction)
         const startPoint = new Vector2d(
-            (newBallCoords.X + newBallDirection.X * ballProperties.radius) * scalePercent,
-            (newBallCoords.Y + newBallDirection.Y * ballProperties.radius) * scalePercent
+            (newBallCoords.X + newBallDirection.X * ballProperties.radius) * scaleRatio,
+            (newBallCoords.Y + newBallDirection.Y * ballProperties.radius) * scaleRatio
         );
         const endPoint = new Vector2d(
-            startPoint.X + (newBallDirection.X * aimLength) * scalePercent,
-            startPoint.Y + (newBallDirection.Y * aimLength) * scalePercent
+            startPoint.X + (newBallDirection.X * aimLength) * scaleRatio,
+            startPoint.Y + (newBallDirection.Y * aimLength) * scaleRatio
         );
 
         // compute head strokes angle
-        const headLength = (aimLength * scalePercent) * aimProperties.headPart;
+        const headLength = (aimLength * scaleRatio) * aimProperties.headPart;
         const angle = Math.atan2(newBallDirection.Y, newBallDirection.X); // angle between X axis and the arrow direction
 
         // draw the arrow
@@ -230,16 +234,16 @@
         // aiming mode
         if (isLeftMouseBtnDown) {
             // draw ball
-            drawBall(newBallCoords, dimensions.scalePercent);
+            drawBall(newBallCoords, dimensions.scaleRatio);
             // draw aim
-            drawAim(dimensions.scalePercent);
+            drawAim(dimensions.scaleRatio);
         }
 
         for (var i=0; i<balls.length; i++) {
             // update ball
             updateBallHorizontalSpace(i);
             // draw updated ball
-            drawBall(balls[i].coords, dimensions.scalePercent);
+            drawBall(balls[i].coords, dimensions.scaleRatio);
         }
 
         // TODO: Check collisions
@@ -259,10 +263,6 @@
         context = canvas.getContext("2d");
         canvasDimensions = document.getElementById(dimensionsId);
         isLeftMouseBtnDown = false;
-        localDimensions = {
-            width: 100, // one localDimensions.width is 1 local unit
-            height: canvasDimensions.offsetHeight / (canvasDimensions.offsetWidth / 100)
-        };
         mouseCoords = new Vector2d(); // X & Y should be represented with local coordinates
         newBallCoords = new Vector2d(); // X & Y should be represented with local coordinates
         newBallDirection = Vector2d.zero(); // this must be an unit vector

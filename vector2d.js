@@ -23,8 +23,8 @@
 
     Vector2d.prototype.convertToLocal = function(dimensions) {
         // convert coordinates in local units
-        this.X = (this.X - dimensions.left) / dimensions.scalePercent;
-        this.Y = (this.Y - dimensions.top) / dimensions.scalePercent
+        this.X = (this.X - dimensions.left) / dimensions.scaleRatio;
+        this.Y = (this.Y - dimensions.top) / dimensions.scaleRatio
     }
 
     Vector2d.prototype.clone = function() {
