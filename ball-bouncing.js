@@ -1,4 +1,5 @@
-(function (global) {
+(function () {
+    "use strict";
 
     /**************
     ** CONSTANTS **
@@ -26,23 +27,8 @@
     /*********************************************************************************
     ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS AND UPDATE FUNCTION **
     /*********************************************************************************/
-    let updateInterval, canvas, context, canvasDimensions, intervalMs, isLeftMouseBtnDown, newBallSpeed, balls, isHorizontal, enabledCollisions;
-    let localDimensions = { // one localDimensions.width is one local unit
-        width: undefined,
-        height: undefined
-    };
-    let mouseCoords = { // X & Y are represented with local units
-        X: undefined,
-        Y: undefined
-    };
-    let newBallCoords = { // X & Y are represented with local units
-        X: undefined,
-        Y: undefined
-    };
-    let newBallDirection = { // this is an unit vector
-        X: undefined,
-        Y: undefined
-    };
+    var updateInterval, canvas, context, canvasDimensions, isLeftMouseBtnDown, newBallSpeed, balls,
+        isHorizontal, enabledCollisions, localDimensions, mouseCoords, newBallCoords, newBallDirection;
 
     /************
     ** HELPERS **
@@ -67,20 +53,25 @@
         }
     }
 
-    function convertToLocalCoordinates(coords, dimensions) {
-        return {
-            X: (coords.X - dimensions.left) / dimensions.scalePercent,
-            Y: (coords.Y - dimensions.top) / dimensions.scalePercent
-        }
+    function addNewBall() {
+        isLeftMouseBtnDown = false;
+
+        // save ball
+        balls.push({
+            coords: newBallCoords.clone(),
+            direction: newBallDirection.clone(), // unit vector
+            speed: newBallSpeed * movementProperties.horizontalSpeedFactor
+        });
+
+        // reset values
+        newBallSpeed = 0;
+        newBallDirection = Vector2d.zero();
+        newBallCoords = new Vector2d();
     }
 
-    function euclideanDistance(ptA, ptB) {
-        const X = ptA.X - ptB.X;
-        const Y = ptA.Y - ptB.Y;
-
-        return Math.sqrt(X*X + Y*Y);
-    }
-
+    /************
+    ** DRAWING **
+    *************/
     function drawBall(ballCoords, scalePercent) {
         context.fillStyle = ballProperties.fillStyle;
         context.beginPath();
@@ -92,21 +83,21 @@
 
     function drawAim(scalePercent) {
         // convert start and end points in CANVAS coordinates
-        let aimLength = newBallSpeed * aimProperties.delay;
+        var aimLength = newBallSpeed * aimProperties.delay;
         if (aimLength > aimProperties.maxLength)
             aimLength = aimProperties.maxLength;
 
-        const startPoint = {
-            X: (newBallCoords.X + newBallDirection.X * ballProperties.radius) * scalePercent,
-            Y: (newBallCoords.Y + newBallDirection.Y * ballProperties.radius) * scalePercent
-        }
-        const endPoint = {
-            X: startPoint.X + (newBallDirection.X * aimLength) * scalePercent,
-            Y: startPoint.Y + (newBallDirection.Y * aimLength) * scalePercent
-        }
+        const startPoint = new Vector2d(
+            (newBallCoords.X + newBallDirection.X * ballProperties.radius) * scalePercent,
+            (newBallCoords.Y + newBallDirection.Y * ballProperties.radius) * scalePercent
+        );
+        const endPoint = new Vector2d(
+            startPoint.X + (newBallDirection.X * aimLength) * scalePercent,
+            startPoint.Y + (newBallDirection.Y * aimLength) * scalePercent
+        );
 
         // compute head strokes angle
-        const headLength = (aimLength * scalePercent) * aimProperties.headPart; // same as euclideanDistance(startPoint, endPoint) * aimProperties.headPart
+        const headLength = (aimLength * scalePercent) * aimProperties.headPart; // same as startPoint.distance(endPoint) * aimProperties.headPart
         const dx = endPoint.X - startPoint.X;
         const dy = endPoint.Y - startPoint.Y;
         const angle = Math.atan2(dy, dx);
@@ -125,28 +116,6 @@
         context.stroke();
     }
 
-    function shot() {
-        isLeftMouseBtnDown = false;
-
-        // save ball
-        balls.push({
-            coords: {
-                X: newBallCoords.X,
-                Y: newBallCoords.Y
-            },
-            direction: { // unit vector
-                X: newBallDirection.X,
-                Y: newBallDirection.Y
-            },
-            speed: newBallSpeed * movementProperties.horizontalSpeedFactor
-        });
-
-        // reset coordinates
-        newBallSpeed = 0;
-        newBallDirection.X = newBallDirection.Y = 0;
-        newBallCoords.X = newBallCoords.Y = undefined;
-    }
-
     function updateBallHorizontalSpace(idx) {
         balls[idx].coords.X += balls[idx].direction.X * balls[idx].speed;
         balls[idx].coords.Y += balls[idx].direction.Y * balls[idx].speed;
@@ -159,6 +128,7 @@
                                     ballProperties.radius : localDimensions.width - ballProperties.radius;
 
             balls[idx].direction.X = -balls[idx].direction.X;
+            // TODO: smaller angle -> smaller hit resistance???
             balls[idx].speed -= movementProperties.horizontalHitResistance;
         }
         if (balls[idx].coords.Y - ballProperties.radius <= 0 || balls[idx].coords.Y + ballProperties.radius >= localDimensions.height) {
@@ -167,6 +137,7 @@
                                     ballProperties.radius : localDimensions.height - ballProperties.radius;
 
             balls[idx].direction.Y = -balls[idx].direction.Y;
+            // TODO: smaller angle -> smaller hit resistance???
             balls[idx].speed -= movementProperties.horizontalHitResistance;
         }
 
@@ -174,15 +145,11 @@
             balls[idx].speed = 0;
     }
 
-    function updateBallVerticalSpace(idx, dimensions) {
-        // TODO: Add vertical space logic
-    }
-
     /********************
     ** EVENT LISTENERS **
     *********************/
     function onMouseMove(event) {
-        let eventDoc, doc, body;
+        var eventDoc, doc, body;
 
         event = event || window.event; // IE-ism
 
@@ -203,29 +170,27 @@
 
         // convert to local coordinates
         const dimensions = getCanvasDimensions();
-        const coords = {
-            X: event.pageX,
-            Y: event.pageY
-        };
-        const localCoords = convertToLocalCoordinates(coords, dimensions);
-        mouseCoords.X = localCoords.X;
-        mouseCoords.Y = localCoords.Y;
+
+        mouseCoords = new Vector2d(event.pageX, event.pageY);
+        mouseCoords.convertToLocal(dimensions);
 
         // check where the pointer is located
         if (mouseCoords.X <= 0 || mouseCoords.X >= localDimensions.width
             || mouseCoords.Y <= 0 || mouseCoords.Y >= localDimensions.height) {
             if (isLeftMouseBtnDown)
-                shot();
+                addNewBall();
         } else {
             // save new ball properties on mouse down
             if (isLeftMouseBtnDown) {
                 // make the direction an unit vector
-                newBallSpeed = euclideanDistance(newBallCoords, mouseCoords);
-                newBallDirection.X = (newBallCoords.X - mouseCoords.X) / newBallSpeed;
-                newBallDirection.Y = (newBallCoords.Y - mouseCoords.Y) / newBallSpeed;
+                newBallSpeed = newBallCoords.distance(mouseCoords);
+                newBallDirection = new Vector2d(
+                    (newBallCoords.X - mouseCoords.X) / newBallSpeed,
+                    (newBallCoords.Y - mouseCoords.Y) / newBallSpeed
+                );
 
                 if (newBallSpeed == 0)
-                    newBallDirection.X = newBallDirection.Y = 0;
+                    newBallDirection = Vector2d.zero();
                 if (newBallSpeed > movementProperties.maxSpeed)
                     newBallSpeed = movementProperties.maxSpeed;
             }
@@ -235,14 +200,13 @@
     function onMouseDown(e) {
         if (e.button === 0) { // check if the left mouse button is pressed
             isLeftMouseBtnDown = true;
-            newBallCoords.X = mouseCoords.X;
-            newBallCoords.Y = mouseCoords.Y;
+            newBallCoords = mouseCoords.clone();
         }
     }
 
     function onMouseUp() {
         if (isLeftMouseBtnDown)
-            shot();
+            addNewBall();
     }
 
     /******************
@@ -252,14 +216,10 @@
         /* updates the canvas in every "interval" miliseconds */
 
         // check dimensions and clear canvas
+        // the canvas is cleared when a new value is attached to dimensions (no matter if a same value)
         const dimensions = getCanvasDimensions();
-
-        if (canvas.width != dimensions.width) {
-            canvas.width = dimensions.width;
-            canvas.height = dimensions.height;
-        } else {
-            context.clearRect(0, 0, dimensions.width, dimensions.height);
-        }
+        canvas.width = dimensions.width;
+        canvas.height = dimensions.height;
 
         // draw canvas border
         context.strokeStyle = "#000000";
@@ -273,12 +233,9 @@
             drawAim(dimensions.scalePercent);
         }
 
-        for (let i=0; i<balls.length; i++) {
+        for (var i=0; i<balls.length; i++) {
             // update ball
-            if (isHorizontal)
-                updateBallHorizontalSpace(i);
-            else
-                updateBallVerticalSpace(i, dimensions);
+            updateBallHorizontalSpace(i);
             // draw updated ball
             drawBall(balls[i].coords, dimensions.scalePercent);
         }
@@ -290,36 +247,39 @@
     ** PUBLIC FUNCTIONS **
     **********************/
     function init(canvasId, dimensionsId, fps, horizontal, collisions) {
-        fps = fps || 60; // 60 fps default
-        isHorizontal = horizontal || true;
-        enabledCollisions = collisions || false;
+        // default values
+        fps = (typeof fps === "undefined") ? 60 : fps; // 60 fps default
+        isHorizontal = (typeof horizontal === "undefined") ? true : horizontal;
+        enabledCollisions = (typeof collisions === "undefined") ? false : collisions;
 
-        // init parameter
+        // init parameters
         canvas =  document.getElementById(canvasId);
         context = canvas.getContext("2d");
         canvasDimensions = document.getElementById(dimensionsId);
-        intervalMs = 1000 / fps;
         isLeftMouseBtnDown = false;
-        localDimensions.width = 100;
-        localDimensions.height = canvasDimensions.offsetHeight / (canvasDimensions.offsetWidth / 100);
-        mouseCoords.X = mouseCoords.Y = undefined;
-        newBallCoords.X = newBallCoords.Y = undefined;
-        newBallDirection.X = newBallDirection.Y = 0;
+        localDimensions = {
+            width: 100, // one localDimensions.width is 1 local unit
+            height: canvasDimensions.offsetHeight / (canvasDimensions.offsetWidth / 100)
+        };
+        mouseCoords = new Vector2d(); // X & Y should be represented with local coordinates
+        newBallCoords = new Vector2d(); // X & Y should be represented with local coordinates
+        newBallDirection = Vector2d.zero(); // this must be an unit vector
         newBallSpeed = 0;
         balls = [];
 
         // add event listeners
-        global.document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp);
 
         // set interval
+        const intervalMs = 1000 / fps; // interval in miliseconds
         updateInterval = setInterval(update, intervalMs);
     }
 
     function clear() {
         // remove event listeners
-        global.document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mousemove", onMouseMove);
         canvas.removeEventListener("mousedown", onMouseDown);
         canvas.removeEventListener("mouseup", onMouseUp);
 
@@ -330,9 +290,9 @@
         canvas.width = canvas.height = 0;
     }
 
-    global.BouncingBalls = {
+    window.BouncingBalls = {
         init: init,
         clear: clear
     }
 
-}(window));
+}());

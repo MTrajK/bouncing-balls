@@ -1,6 +1,7 @@
-(function (global) {
+(function () {
+    "use strict";
 
     // init
-    global.BouncingBalls.init("canvas", "dimensions");
+    window.BouncingBalls.init("canvas", "dimensions");
 
-}(window));
+}());
