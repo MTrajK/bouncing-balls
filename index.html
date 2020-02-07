@@ -11,8 +11,40 @@
 
 <body>
 
-    <div id="dimensions">
-        <canvas id="canvas"></canvas>
+    <div id="simulation">
+        <!-- Only these 2 elements are used in the simulation "dimensions" and "canvas" -->
+        <div id="dimensions">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <input type="button" id="back" value="Back"/>
+    </div>
+
+
+    <div id="choices">
+        <h2>Bouncing Balls Simulation</h2></br>
+
+        <h3>Direction:</h3>
+        <div>
+            <input type="radio" name="direction" id="vertical" checked>
+            <label for="vertical"><b>Vertical</b></label>
+        </div>
+        <div>
+            <input type="radio" name="direction" id="horizontal">
+            <label for="horizontal"><b>Horizontal</b></label>
+        </div>
+
+        <h3>Collisions:</h3>
+        <div>
+            <input type="radio" name="collisions" id="enable" checked>
+            <label for="enable"><b>Enable</b></label>
+        </div>
+        <div>
+            <input type="radio" name="collisions" id="disable">
+            <label for="disable"><b>Disable</b></label>
+        </div>
+
+        <input type="button" id="start" value="Start"/>
     </div>
 
     <script src="vector2d.js"></script>

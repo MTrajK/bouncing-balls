@@ -115,7 +115,7 @@
         Ball.prototype.collision.call(this, ball);
     }
 
-    VerticalBall.prototype.updateVertical = function() {
+    VerticalBall.prototype.update = function() {
         var rightMostPoint = this._localDimensions.width - this.radius;
         var lowestPoint = this._localDimensions.height - this.radius;
 

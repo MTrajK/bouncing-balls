@@ -34,3 +34,22 @@
     cursor: -webkit-grab;
     cursor: grab;
 }
+
+#simulation {
+    display: none;
+}
+
+#choices, #simulation {
+    text-align: center;
+}
+
+#choices {
+    margin-top: 100px;
+}
+
+#start, #back {    
+    font-size: 18px;
+    padding: 5px 10px;
+    font-weight: bold;
+    margin-top: 50px;
+}
