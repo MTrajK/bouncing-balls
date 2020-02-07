@@ -1,7 +1,7 @@
 # Bouncing Balls
 
-Simple bouncing balls physic using JS canvas API.
-Plain CSS and JS will be used. (without third-part frameworks/code)
+Simple bouncing balls physics using plain JavaScript.
+Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/code)
 
 ## Ideas
 
@@ -16,5 +16,5 @@ Plain CSS and JS will be used. (without third-part frameworks/code)
 - Add logic for collisions. - **DONE**
 - Use inheritance for the diferent bouncing - **DONE**
 - Add 2 checkboxes on the first screen (one for vertical/horizontal space, and one for collisions, 4 possible combinations) and control this from another script. - **DONE**
-- Make unit tests.
+- Make unit tests. Using Mocha framework (rung -> npm test). - **DONE**
 - Simulation available on gh pages.
