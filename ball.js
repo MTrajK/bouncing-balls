@@ -1,17 +1,19 @@
 (function(){
     "use strict";
 
+    // Note, the walls are harder than the balls, so the ball lost kinetic energy when bouncing from a wall.
+    // But the balls are equally hard (and have equal weigh), so they don't lost energy when bouncing. (the energy is transfered?)
+    // So the collision between balls is elastic.
     const movementProperties = {
-        horizontalAirResistance: 0.005, // decreasing of speed in each frame
-        horizontalHitResistance: 0.1, // decreasing of speed when hit a wall
-        horizontalSpeedFactor: 0.1 // speed factor
+        horizontalAirResistance: 0.99, // decreasing of speed in each frame
+        horizontalHitResistance: 0.8, // decreasing of speed when hit a wall
+        horizontalSpeedFactor: 0.2 // speed factor
     };
 
-    function Ball(position, direction, speed, radius, localDimensions, isHorizontal, enabledCollisions) {
+    function Ball(position, direction, radius, localDimensions, isHorizontal, enabledCollisions) {
         // constructor
         this.position = position;
-        this.direction = direction;
-        this.speed = speed * movementProperties.horizontalSpeedFactor;
+        this.direction = direction.mult(movementProperties.horizontalSpeedFactor);
         this.radius = radius;
         this._localDimensions = localDimensions;
         this._isHorizontal = isHorizontal;
@@ -19,33 +21,29 @@
     }
 
     Ball.prototype.update = function() {
-        if (this.speed < 0)
-            this.speed = 0;
-        if (this.speed === 0)
+        if (this.direction.isNearZero())
             return; // the ball is staying in place
 
-        this.position.X += this.direction.X * this.speed;
-        this.position.Y += this.direction.Y * this.speed;
-
-        this.speed -= movementProperties.horizontalAirResistance;
+        this.position = this.position.add(this.direction);
+        this.direction = this.direction.mult(movementProperties.horizontalAirResistance);
 
         if (this.position.X - this.radius <= 0 || this.position.X + this.radius >= this._localDimensions.width) {
             // move ball inside the borders
             this.position.X = (this.position.X - this.radius <= 0) ?
                                     this.radius : this._localDimensions.width - this.radius;
 
+            // reflection angle is an inverse angle to the perpendicular axis to the wall (in this case the wall is Y axis)
             this.direction.X = -this.direction.X;
-            // TODO: smaller angle -> smaller hit resistance???
-            this.speed -= movementProperties.horizontalHitResistance;
+            this.direction = this.direction.mult(movementProperties.horizontalHitResistance);
         }
         if (this.position.Y - this.radius <= 0 || this.position.Y + this.radius >= this._localDimensions.height) {
             // move ball inside the borders
             this.position.Y = (this.position.Y - this.radius <= 0) ?
                                     this.radius : this._localDimensions.height - this.radius;
 
+            // reflection angle is an inverse angle to the perpendicular axis to the wall (in this case the wall is X axis)
             this.direction.Y = -this.direction.Y;
-            // TODO: smaller angle -> smaller hit resistance???
-            this.speed -= movementProperties.horizontalHitResistance;
+            this.direction = this.direction.mult(movementProperties.horizontalHitResistance);
         }
     }
 
@@ -69,11 +67,6 @@
             this.direction.Y = -this.direction.Y;
             ball.direction.X = -ball.direction.X;
             ball.direction.Y = -ball.direction.Y;
-
-            // change speed
-            var temp = this.speed;
-            this.speed = this.speed * 0.4 + ball.speed * 0.4;
-            ball.speed = ball.speed * 0.4 + temp * 0.4;
         }
     }
 
