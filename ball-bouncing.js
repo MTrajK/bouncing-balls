@@ -49,8 +49,7 @@
             newBallDirection.clone(),
             ballProperties.radius,
             localDimensions,
-            isHorizontal,
-            enabledCollisions
+            isHorizontal
         ));
 
         // reset values
@@ -194,9 +193,9 @@
         for (var i=0; i<balls.length; i++)
             balls[i].update();
 
-        
         if (enabledCollisions)
-            // check collisions (O(N^2) but this can be much faster, search in quadtree structure)
+            // check collisions 
+            // O(N^2) but this can be much faster, O(N*LogN) searching in quadtree structure, (or sort the points and check the closest O(N*LogN))
             for (var i=0; i<balls.length; i++)
                 for (var j=i+1; j<balls.length; j++)
                     balls[i].collision(balls[j]);
