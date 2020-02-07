@@ -2,23 +2,22 @@
     "use strict";
 
     /*********************************************************
-        Notes about the physics in the simulations: 
+        Notes about the physics in the simulations:
         The balls are equally hard (and have equal weight), so they don't lose energy when bouncing between themself.
         In the horizontal simulation, a ball loses energy when bouncing from a wall (the wall is harder and stationary).
-        The ball also loses energy from the air and gravity in vertical simulation 
+        The ball also loses energy from the air and gravity in vertical simulation
         (but not from spinning and some other 3d things possible in billiard and basketball).
     *********************************************************/
 
     /**************
      * Ball class *
     ***************/
-    function Ball(position, velocity, radius, localDimensions, isHorizontal) {
+    function Ball(position, velocity, radius, localDimensions) {
         // base constructor
         this.position = position;
         this.velocity = velocity;
         this.radius = radius;
         this._localDimensions = localDimensions;
-        this._isHorizontal = isHorizontal;
     }
 
     Ball.prototype.collision = function(ball) {
@@ -40,8 +39,8 @@
 
             // move balls outside of collision
             const diff = (minDistance - distance) / 2;
-            this.position = this.position.add(this.velocity.normalize().mult(diff));
-            ball.position = ball.position.add(ball.velocity.normalize().mult(diff));
+            this.position = this.position.add(this.velocity.tryNormalize().mult(diff));
+            ball.position = ball.position.add(ball.velocity.tryNormalize().mult(diff));
         }
     }
 
@@ -162,7 +161,7 @@
     var root = typeof self == 'object' && self.self === self && self ||
             typeof global == 'object' && global.global === global && global ||
             this || {};
-    
+
     // Export the Balls object for **Node.js**, with
     // backwards-compatibility for their old module API. If we're in
     // the browser, add Balls as a global object.

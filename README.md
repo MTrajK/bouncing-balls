@@ -18,3 +18,8 @@ Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/c
 - Add 2 checkboxes on the first screen (one for vertical/horizontal space, and one for collisions, 4 possible combinations) and control this from another script. - **DONE**
 - Make unit tests. Using Mocha framework (rung -> npm test). - **DONE**
 - Simulation available on gh pages.
+
+- how to run tests using mocha:
+    1. instal node js
+    2. install mocha in the project -> npm install mocha
+    3. run tests from this project -> npm test

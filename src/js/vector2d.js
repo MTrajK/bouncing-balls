@@ -22,8 +22,12 @@
         return Math.atan2(this.X, this.Y);
     }
 
-    Vector2d.prototype.normalize = function() {
+    Vector2d.prototype.tryNormalize = function() {
         // convert to unit vector, vector with length of 1 (distance between origin and this vector)
+        // if zero vector, returns it
+        var length = this.length();
+        if (length == 0)
+            return this.clone();
         return this.div(this.length());
     }
 
@@ -58,7 +62,7 @@
             v.Y + this.Y
         );
     }
-    
+
     Vector2d.prototype.sub = function(v) {
         // substract 'v' from this vector (direction from this to 'v' vector)
         return new Vector2d(
@@ -100,7 +104,7 @@
         return new Vector2d(0, 0);
     }
 
-    Vector2d.NEAR_ZERO = 0.01; // Machine epsilon (an upper bound on the relative error due to rounding in floating point arithmetic)
+    Vector2d.NEAR_ZERO = 0.01; // a small value used to detect stationary balls (non eye-catchable moving)
 
     // Establish the root object, `window` (`self`) in the browser, `global`
     // on the server, or `this` in some virtual machines.

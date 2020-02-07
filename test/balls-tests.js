@@ -1,75 +1,159 @@
 var assert = require('assert');
 var Vector2d = require('../src/js/vector2d.js').Vector2d;
+var Balls = require('../src/js/ball.js').Balls;
 
-describe('Vector2d', function() {
-    describe('empty vector constructor', function() {
-        it('should return vector with undefined X and Y coordinates', function() {
-            var vector = new Vector2d();
-            assert.equal(typeof(vector.X), "undefined");
-            assert.equal(typeof(vector.Y), "undefined");
+describe('Balls', function() {
+    const localDimensions = {
+        width: 100,
+        height: 100 * (2/3)
+    };
+    const ballRadius = 1;
+    // Machine epsilon (an upper bound on the relative error due to rounding in floating point arithmetic)
+    const epsilon = 0.00000001;
+    function nearEqual(a, b) {
+        return Math.abs(a - b) < epsilon;
+    }
+
+    describe('no collision', function() {
+        it('should have the same position before and after method', function() {
+            // arrange
+            var oldPositionA = new Vector2d(50, 50);
+            var ballA = new Balls.VerticalBall(
+                oldPositionA.clone(),
+                new Vector2d(10, 0),
+                ballRadius,
+                localDimensions
+            );
+            var oldPositionB = new Vector2d(60, 50);
+            var ballB = new Balls.VerticalBall(
+                oldPositionB.clone(),
+                new Vector2d(10, 0),
+                ballRadius,
+                localDimensions
+            );
+
+            // act
+            ballA.collision(ballB)
+
+            // assert
+            assert.equal(ballA.position.X, oldPositionA.X);
+            assert.equal(ballA.position.Y, oldPositionA.Y);
+            assert.equal(ballB.position.X, oldPositionB.X);
+            assert.equal(ballB.position.Y, oldPositionB.Y);
         });
     });
-    describe('vector constructor', function() {
-        it('should return vector with defined X and Y coordinates', function() {
-            var X = 2;
-            var Y = 3;
-            var vector = new Vector2d(X, Y);
-            assert.equal(vector.X, X);
-            assert.equal(vector.Y, Y);
+    describe('1 moving ball collision', function() {
+        it('should move the stationary ball and stop the moving ball', function() {
+            // arrange
+            var oldPositionA = new Vector2d(50, 50);
+            var ballA = new Balls.VerticalBall(
+                oldPositionA.clone(),
+                new Vector2d(10, 0),
+                ballRadius,
+                localDimensions
+            );
+            var oldVelocityA = ballA.velocity.clone();
+            var oldPositionB = new Vector2d(50.5, 50);
+            var ballB = new Balls.VerticalBall(
+                oldPositionB.clone(),
+                new Vector2d(0, 0),
+                ballRadius,
+                localDimensions
+            );
+            var oldVelocityB = ballB.velocity.clone();
+
+            // act
+            ballA.collision(ballB)
+
+            // assert
+            assert.equal(nearEqual(ballA.position.X, oldPositionA.X), true);
+            assert.equal(nearEqual(ballA.position.Y, oldPositionA.Y), true);
+            assert.equal(nearEqual(ballA.velocity.X, oldVelocityB.X), true);
+            assert.equal(nearEqual(ballA.velocity.Y, oldVelocityB.Y), true);
+            assert.equal(nearEqual(ballB.position.X, oldPositionB.X), false);
+            assert.equal(nearEqual(ballB.position.Y, oldPositionB.Y), true);
+            assert.equal(nearEqual(ballB.velocity.X, oldVelocityA.X), true);
+            assert.equal(nearEqual(ballB.velocity.Y, oldVelocityA.Y), true);
         });
     });
-    describe('zero vector', function() {
-        it('should return vector with X and Y equal to 0', function() {
-            var vector = Vector2d.zero();
-            assert.equal(vector.X, 0);
-            assert.equal(vector.Y, 0);
+    describe('2 moving balls collision', function() {
+        it('should change the velocity vectors of both balls', function() {
+            // arrange
+            var oldPositionA = new Vector2d(50, 50);
+            var ballA = new Balls.VerticalBall(
+                oldPositionA.clone(),
+                new Vector2d(10, 0),
+                ballRadius,
+                localDimensions
+            );
+            var oldVelocityA = ballA.velocity.clone();
+            var oldPositionB = new Vector2d(50.5, 50);
+            var ballB = new Balls.VerticalBall(
+                oldPositionB.clone(),
+                new Vector2d(-7, 0),
+                ballRadius,
+                localDimensions
+            );
+            var oldVelocityB = ballB.velocity.clone();
+
+            // act
+            ballA.collision(ballB)
+
+            // assert
+            assert.equal(nearEqual(ballA.position.X, oldPositionA.X), false);
+            assert.equal(nearEqual(ballA.position.Y, oldPositionA.Y), true);
+            assert.equal(nearEqual(ballA.velocity.X, oldVelocityB.X), true);
+            assert.equal(nearEqual(ballA.velocity.Y, oldVelocityB.Y), true);
+            assert.equal(nearEqual(ballB.position.X, oldPositionB.X), false);
+            assert.equal(nearEqual(ballB.position.Y, oldPositionB.Y), true);
+            assert.equal(nearEqual(ballB.velocity.X, oldVelocityA.X), true);
+            assert.equal(nearEqual(ballB.velocity.Y, oldVelocityA.Y), true);
         });
     });
-    describe('clone vector', function() {
-        it('should return vector with equal coordinates but different reference', function() {
-            var X = 5;
-            var Y = 1;
-            var vector = new Vector2d(X, Y);
-            var clone = vector.clone();
-            assert.equal(clone.X, X);
-            assert.equal(clone.Y, Y);
-            assert.equal(vector === clone, false);
+    describe('horizontal ball moving', function() {
+        it('should move the ball in direction', function() {
+            // arrange
+            var oldPosition = new Vector2d(50, 50);
+            var oldVelocity = new Vector2d(10, 0);
+            var ball = new Balls.HorizontalBall(
+                oldPosition.clone(),
+                oldVelocity.clone(),
+                ballRadius,
+                localDimensions
+            );
+
+            // act
+            ball.update();
+
+            // assert
+            var direction = oldPosition.direction(ball.position).tryNormalize();
+            var velocity = oldVelocity.tryNormalize();
+            assert.equal(nearEqual(direction.X, velocity.X), true);
+            assert.equal(nearEqual(direction.Y, velocity.Y), true);
         });
     });
-    describe('vector length', function() {
-        it('should return 1 because all 4 combinations are unit vectors', function() {
-            assert.equal(new Vector2d(1, 0).length(), 1); // X axis positive
-            assert.equal(new Vector2d(-1, 0).length(), 1); // X axis negative
-            assert.equal(new Vector2d(0, 1).length(), 1); // Y axis positive
-            assert.equal(new Vector2d(0, -1).length(), 1); // Y axis negative
-        });
-    });
-    describe('normalize vector', function() {
-        it('should return 1 or -1 because all 4 combinations are axis vectors', function() {
-            assert.equal(new Vector2d(5, 0).normalize().X, 1); // X axis positive
-            assert.equal(new Vector2d(-8, 0).normalize().X, -1); // X axis negative
-            assert.equal(new Vector2d(0, 12).normalize().Y, 1); // Y axis positive
-            assert.equal(new Vector2d(0, -1).normalize().Y, -1); // Y axis negative
-        });
-    });
-    describe('vectorangle ', function() {
-        it('should return the same value because the pairs have same unit vector and all 4 combinations are axis vectors', function() {
-            assert.equal(new Vector2d(12, 0).angle(), new Vector2d(17, 0).angle()); // X axis positive
-            assert.equal(new Vector2d(-31, 0).angle(), new Vector2d(-4, 0).angle()); // X axis negative
-            assert.equal(new Vector2d(0, 12).angle(), new Vector2d(0, 3).angle()); // Y axis positive
-            assert.equal(new Vector2d(0, -1).angle(), new Vector2d(0, -45).angle()); // Y axis negative
-        });
-    });
-    describe('is near zero vector', function() {
-        it('should return true if the abs of the nonzero constant is smaller than NEAR_ZERO', function() {
-            assert.equal(new Vector2d(0.009, 0).isNearZero(), true);
-            assert.equal(new Vector2d(-0.005, 0).isNearZero(), true);
-            assert.equal(new Vector2d(0.02, 0).isNearZero(), false);
-            assert.equal(new Vector2d(-0.011, 0).isNearZero(), false);
-            assert.equal(new Vector2d(0, 0.0003).isNearZero(), true);
-            assert.equal(new Vector2d(0, -0.00999).isNearZero(), true);
-            assert.equal(new Vector2d(0, 0.01111).isNearZero(), false);
-            assert.equal(new Vector2d(0, -0.02).isNearZero(), false);
+    describe('horizontal ball wall collision', function() {
+        it('should reflect the angle of moving and position inside borders', function() {
+            // arrange
+            var oldPosition = new Vector2d(99.5, 50);
+            var oldVelocity = new Vector2d(10, 0);
+            var ball = new Balls.HorizontalBall(
+                oldPosition.clone(),
+                oldVelocity.clone(),
+                ballRadius,
+                localDimensions
+            );
+
+            // act
+            ball.update();
+
+            // assert
+            var newVelocity = ball.velocity.tryNormalize();
+            oldVelocity = oldVelocity.tryNormalize();
+            assert.equal(nearEqual(oldVelocity.X, -newVelocity.X), true);
+            assert.equal(nearEqual(oldVelocity.Y, newVelocity.Y), true);
+            assert.notEqual(oldPosition.X, ball.position.X);
+            assert.equal(ball.position.X, localDimensions.width - ballRadius);
         });
     });
 });

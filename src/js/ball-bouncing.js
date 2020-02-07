@@ -50,16 +50,14 @@
                 newBallPosition.clone(),
                 newBallDirection.clone(),
                 ballProperties.radius,
-                localDimensions,
-                isHorizontal
+                localDimensions
             );
         else
             newBall = new Balls.VerticalBall(
                 newBallPosition.clone(),
                 newBallDirection.clone(),
                 ballProperties.radius,
-                localDimensions,
-                isHorizontal
+                localDimensions
             );
         balls.push(newBall);
 
@@ -205,7 +203,7 @@
             balls[i].update();
 
         if (enabledCollisions)
-            // check collisions 
+            // check collisions
             // O(N^2) but this can be much faster, O(N*LogN) searching in quadtree structure, (or sort the points and check the closest O(N*LogN))
             for (var i=0; i<balls.length; i++)
                 for (var j=i+1; j<balls.length; j++)
