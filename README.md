@@ -15,4 +15,6 @@ Plain CSS and JS will be used. (without third-part frameworks/code)
 - Add logic for vertical space bouncing. - **DONE**
 - Add logic for collisions. - **DONE**
 - Use inheritance for the diferent bouncing - **DONE**
-- Add 2 checkboxes on the first screen (one for vertical/horizontal space, and one for collisions, 4 possible combinations) and control this from another script.
+- Add 2 checkboxes on the first screen (one for vertical/horizontal space, and one for collisions, 4 possible combinations) and control this from another script. - **DONE**
+- Make unit tests.
+- Simulation available on gh pages.

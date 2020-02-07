@@ -258,9 +258,10 @@
         canvas.width = canvas.height = 0;
     }
 
+    /* Save this class as global, no need from looking for root because this script must run in browser */
     window.BouncingBalls = {
         init: init,
         clear: clear
-    }
+    };
 
 }());

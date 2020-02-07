@@ -102,7 +102,24 @@
 
     Vector2d.NEAR_ZERO = 0.01;
 
-    /* Save this class as global */
-    window.Vector2d = Vector2d;
+    // Establish the root object, `window` (`self`) in the browser, `global`
+    // on the server, or `this` in some virtual machines.
+    var root = typeof self == 'object' && self.self === self && self ||
+            typeof global == 'object' && global.global === global && global ||
+            this || {};
+
+    // Export the Vector2d object for **Node.js**, with
+    // backwards-compatibility for their old module API. If we're in
+    // the browser, add Vector2d as a global object.
+    // (`nodeType` is checked to ensure that `module`
+    // and `exports` are not HTML elements.)
+    if (typeof exports != 'undefined' && !exports.nodeType) {
+        if (typeof module != 'undefined' && !module.nodeType && module.exports) {
+            exports = module.exports = Vector2d;
+        }
+        exports.Vector2d = Vector2d;
+    } else {
+        root.Vector2d = Vector2d;
+    }
 
 }());
