@@ -14,5 +14,5 @@ Plain CSS and JS will be used. (without third-part frameworks/code)
     * Handle mouse moving, mouse up and mouse down
 - Add logic for vertical space bouncing. - **DONE**
 - Add logic for collisions. - **DONE**
+- Use inheritance for the diferent bouncing - **DONE**
 - Add 2 checkboxes on the first screen (one for vertical/horizontal space, and one for collisions, 4 possible combinations) and control this from another script.
-- Use inheritance for the diferent bouncing?

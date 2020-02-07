@@ -44,13 +44,24 @@
         isLeftMouseBtnDown = false;
 
         // save the new ball
-        balls.push(new Ball(
-            newBallPosition.clone(),
-            newBallDirection.clone(),
-            ballProperties.radius,
-            localDimensions,
-            isHorizontal
-        ));
+        var newBall;
+        if (isHorizontal)
+            newBall = new Balls.HorizontalBall(
+                newBallPosition.clone(),
+                newBallDirection.clone(),
+                ballProperties.radius,
+                localDimensions,
+                isHorizontal
+            );
+        else
+            newBall = new Balls.VerticalBall(
+                newBallPosition.clone(),
+                newBallDirection.clone(),
+                ballProperties.radius,
+                localDimensions,
+                isHorizontal
+            );
+        balls.push(newBall);
 
         // reset values
         newBallDirection = Vector2d.zero();

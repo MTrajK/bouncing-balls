@@ -102,6 +102,7 @@
 
     Vector2d.NEAR_ZERO = 0.01;
 
+    /* Save this class as global */
     window.Vector2d = Vector2d;
 
 }());
