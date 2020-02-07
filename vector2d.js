@@ -1,9 +1,6 @@
 (function(){
     "use strict";
 
-    const NEAR_ZERO = 0.01;
-
-    // Note: this class should be used as immutable class?????
     function Vector2d(x, y) {
         // constructor for 2 dimensional vector
         this.X = x;
@@ -90,7 +87,7 @@
 
     Vector2d.prototype.isNearZero = function() {
         // check if near zero vector
-        return this.length() < NEAR_ZERO;
+        return this.length() < Vector2d.NEAR_ZERO;
     }
 
     Vector2d.prototype.clone = function() {
@@ -102,6 +99,8 @@
         // static function for a zero vector
         return new Vector2d(0, 0);
     }
+
+    Vector2d.NEAR_ZERO = 0.01;
 
     window.Vector2d = Vector2d;
 

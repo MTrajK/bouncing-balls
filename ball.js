@@ -34,56 +34,68 @@
     }
 
     Ball.prototype.updateHorizontal = function() {
+        var rightMostPoint = this._localDimensions.width - this.radius;
+        var lowestPoint = this._localDimensions.height - this.radius;
+
         if (this.velocity.isNearZero())
             return; // the ball is staying in place
 
         this.position = this.position.add(this.velocity);
-        this.velocity = this.velocity.mult(movementProperties.horizontalAirResistance);
 
-        if (this.position.X - this.radius <= 0 || this.position.X + this.radius >= this._localDimensions.width) {
+        if (this.position.X <= this.radius || this.position.X >= rightMostPoint) {
             // move ball inside the borders
-            this.position.X = (this.position.X - this.radius <= 0) ?
-                                    this.radius : this._localDimensions.width - this.radius;
+            this.position.X = (this.position.X <= this.radius) ? this.radius : rightMostPoint;
 
             // reflection angle is an inverse angle to the perpendicular axis to the wall (in this case the wall is Y axis)
             this.velocity.X = -this.velocity.X;
             this.velocity = this.velocity.mult(movementProperties.horizontalHitResistance);
         }
-        if (this.position.Y - this.radius <= 0 || this.position.Y + this.radius >= this._localDimensions.height) {
+        if (this.position.Y <= this.radius || this.position.Y >= lowestPoint) {
             // move ball inside the borders
-            this.position.Y = (this.position.Y - this.radius <= 0) ?
-                                    this.radius : this._localDimensions.height - this.radius;
+            this.position.Y = (this.position.Y <= this.radius) ? this.radius : lowestPoint;
 
             // reflection angle is an inverse angle to the perpendicular axis to the wall (in this case the wall is X axis)
             this.velocity.Y = -this.velocity.Y;
             this.velocity = this.velocity.mult(movementProperties.horizontalHitResistance);
         }
+
+        // update velocity
+        this.velocity = this.velocity.mult(movementProperties.horizontalAirResistance);
     }
 
     Ball.prototype.updateVertical = function() {
-        if (this.velocity.isNearZero())
+        var rightMostPoint = this._localDimensions.width - this.radius;
+        var lowestPoint = this._localDimensions.height - this.radius;
+
+        if (this.velocity.isNearZero() && this.position.Y == lowestPoint)
             return; // the ball is staying in place
 
         this.position = this.position.add(this.velocity);
-        this.velocity = this.velocity.mult(movementProperties.verticalAirResistance);
-        this.velocity.Y += movementProperties.verticalGravity;
 
-        if (this.position.X - this.radius <= 0 || this.position.X + this.radius >= this._localDimensions.width) {
+        if (this.position.X <= this.radius || this.position.X >= rightMostPoint) {
             // move ball inside the borders
-            this.position.X = (this.position.X - this.radius <= 0) ?
-                                    this.radius : this._localDimensions.width - this.radius;
+            this.position.X = (this.position.X <= this.radius) ? this.radius : rightMostPoint;
 
+            // reflection
             this.velocity.X = -this.velocity.X;
         }
-        if (this.position.Y - this.radius <= 0 || this.position.Y + this.radius >= this._localDimensions.height) {
+        if (this.position.Y <= this.radius || this.position.Y >= lowestPoint) {
             // move ball inside the borders
-            this.position.Y = (this.position.Y - this.radius <= 0) ?
-                                    this.radius : this._localDimensions.height - this.radius;
+            this.position.Y = (this.position.Y <= this.radius) ? this.radius : lowestPoint;
 
-            this.velocity.Y = -this.velocity.Y;
-            if (this.position.Y + this.radius >= this._localDimensions.height)
+            if (this.position.Y == lowestPoint)
                 this.velocity = this.velocity.mult(movementProperties.verticalHitResistance);
+
+            // reflection
+            this.velocity.Y = -this.velocity.Y;
         }
+
+        // update velocity
+        this.velocity = this.velocity.mult(movementProperties.verticalAirResistance);
+        if (this.position.Y == lowestPoint && Math.abs(this.velocity.Y) <= Vector2d.NEAR_ZERO)
+            this.velocity.Y = 0; // the ball isn't falling or jumping
+        else
+            this.velocity.Y += movementProperties.verticalGravity; // apply gravity
     }
 
     Ball.prototype.collision = function(ball) {
