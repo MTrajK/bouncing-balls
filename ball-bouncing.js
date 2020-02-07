@@ -136,8 +136,7 @@
         const dimensions = getCanvasDimensions();
 
         // convert mouse coordinates to local coordinates
-        mousePosition = new Vector2d(event.pageX, event.pageY);
-        mousePosition.convertToLocal(dimensions);
+        mousePosition = new Vector2d(event.pageX, event.pageY).convertToLocal(dimensions);
 
         if (isLeftMouseBtnDown) {
             // check where the pointer is located
@@ -145,7 +144,7 @@
                 || mousePosition.Y <= 0 || mousePosition.Y >= localDimensions.height) {
                 addNewBall();
             } else {
-                newBallDirection = mousePosition.direction(newBallPosition); // inverse direction
+                newBallDirection = mousePosition.sub(newBallPosition); // inverse direction
 
                 // directionLength shoud be smaller or equal to aimProperties.maxSpeed
                 var directionLength = newBallDirection.length();
@@ -195,10 +194,12 @@
         for (var i=0; i<balls.length; i++)
             balls[i].update();
 
-        // check collisions (O(N^2) but this can be much faster, search in quadtree structure)
-        for (var i=0; i<balls.length; i++)
-            for (var j=i+1; j<balls.length; j++)
-                balls[i].collision(balls[j]);
+        
+        if (enabledCollisions)
+            // check collisions (O(N^2) but this can be much faster, search in quadtree structure)
+            for (var i=0; i<balls.length; i++)
+                for (var j=i+1; j<balls.length; j++)
+                    balls[i].collision(balls[j]);
 
         // draw updated balls
         for (var i=0; i<balls.length; i++)

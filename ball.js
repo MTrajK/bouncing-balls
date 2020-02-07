@@ -48,7 +48,7 @@
     }
 
     Ball.prototype.collision = function(ball) {
-        var direction = this.position.direction(ball.position);
+        var direction = this.position.sub(ball.position);
         var distance = direction.length();
         var minDistance = this.radius + ball.radius;
 
@@ -56,7 +56,7 @@
             var diff = (minDistance - distance);
 
             // move balls outside of collision
-            direction.toUnit();
+            direction = direction.normalize();
             this.position.X -= direction.X * diff;
             this.position.Y -= direction.Y * diff;
             ball.position.X += direction.X * diff;
