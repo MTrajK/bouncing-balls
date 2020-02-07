@@ -2,6 +2,6 @@
     "use strict";
 
     // init
-    window.BouncingBalls.init("canvas", "dimensions");
+    window.BouncingBalls.init("canvas", "dimensions", true, true);
 
 }());

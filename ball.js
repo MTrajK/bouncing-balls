@@ -10,10 +10,10 @@
         horizontalSpeedFactor: 0.2 // speed factor
     };
 
-    function Ball(position, direction, radius, localDimensions, isHorizontal, enabledCollisions) {
+    function Ball(position, velocity, radius, localDimensions, isHorizontal, enabledCollisions) {
         // constructor
         this.position = position;
-        this.direction = direction.mult(movementProperties.horizontalSpeedFactor);
+        this.velocity = velocity.mult(movementProperties.horizontalSpeedFactor);
         this.radius = radius;
         this._localDimensions = localDimensions;
         this._isHorizontal = isHorizontal;
@@ -21,11 +21,11 @@
     }
 
     Ball.prototype.update = function() {
-        if (this.direction.isNearZero())
+        if (this.velocity.isNearZero())
             return; // the ball is staying in place
 
-        this.position = this.position.add(this.direction);
-        this.direction = this.direction.mult(movementProperties.horizontalAirResistance);
+        this.position = this.position.add(this.velocity);
+        this.velocity = this.velocity.mult(movementProperties.horizontalAirResistance);
 
         if (this.position.X - this.radius <= 0 || this.position.X + this.radius >= this._localDimensions.width) {
             // move ball inside the borders
@@ -33,8 +33,8 @@
                                     this.radius : this._localDimensions.width - this.radius;
 
             // reflection angle is an inverse angle to the perpendicular axis to the wall (in this case the wall is Y axis)
-            this.direction.X = -this.direction.X;
-            this.direction = this.direction.mult(movementProperties.horizontalHitResistance);
+            this.velocity.X = -this.velocity.X;
+            this.velocity = this.velocity.mult(movementProperties.horizontalHitResistance);
         }
         if (this.position.Y - this.radius <= 0 || this.position.Y + this.radius >= this._localDimensions.height) {
             // move ball inside the borders
@@ -42,31 +42,30 @@
                                     this.radius : this._localDimensions.height - this.radius;
 
             // reflection angle is an inverse angle to the perpendicular axis to the wall (in this case the wall is X axis)
-            this.direction.Y = -this.direction.Y;
-            this.direction = this.direction.mult(movementProperties.horizontalHitResistance);
+            this.velocity.Y = -this.velocity.Y;
+            this.velocity = this.velocity.mult(movementProperties.horizontalHitResistance);
         }
     }
 
     Ball.prototype.collision = function(ball) {
-        var direction = this.position.sub(ball.position);
-        var distance = direction.length();
-        var minDistance = this.radius + ball.radius;
+        const minDistance = ball.radius + this.radius;
+        const position_diff = this.position.sub(ball.position);
+        const distance = position_diff.length();
 
         if (distance <= minDistance) {
-            var diff = (minDistance - distance);
+            // the formula could be found here: https://en.wikipedia.org/wiki/Elastic_collision
+            // velocityA -= (dot(velocityAB_diff, positionAB_diff) / distance^2) * positionAB_diff
+            // velocityB -= (dot(velocityBA_diff, positionBA_diff) / distance^2) * positionBA_diff
+            // but this thing (dot(velocityAB_diff, positionAB_diff) / distance^2) is same for 2 velocities
+            // because dot and length methods are commutative properties, and velocityAB_diff = -velocityBA_diff, same for position_diff
+            const coeff = this.velocity.sub(ball.velocity).dot(position_diff) / (distance * distance);
+            this.velocity = this.velocity.sub(position_diff.mult(coeff));
+            ball.velocity = ball.velocity.sub(position_diff.opposite().mult(coeff));
 
             // move balls outside of collision
-            direction = direction.normalize();
-            this.position.X -= direction.X * diff;
-            this.position.Y -= direction.Y * diff;
-            ball.position.X += direction.X * diff;
-            ball.position.Y += direction.Y * diff;
-
-            // change directions
-            this.direction.X = -this.direction.X;
-            this.direction.Y = -this.direction.Y;
-            ball.direction.X = -ball.direction.X;
-            ball.direction.Y = -ball.direction.Y;
+            const diff = (minDistance - distance) / 2;
+            this.position = this.position.add(this.velocity.normalize().mult(diff));
+            ball.position = ball.position.add(ball.velocity.normalize().mult(diff));
         }
     }
 

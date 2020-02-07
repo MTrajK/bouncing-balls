@@ -144,7 +144,7 @@
                 || mousePosition.Y <= 0 || mousePosition.Y >= localDimensions.height) {
                 addNewBall();
             } else {
-                newBallDirection = mousePosition.sub(newBallPosition); // inverse direction
+                newBallDirection = mousePosition.direction(newBallPosition);
 
                 // directionLength shoud be smaller or equal to aimProperties.maxSpeed
                 var directionLength = newBallDirection.length();
@@ -209,11 +209,11 @@
     /*********************
     ** PUBLIC FUNCTIONS **
     **********************/
-    function init(canvasId, dimensionsId, fps, horizontal, collisions) {
+    function init(canvasId, dimensionsId, horizontal, collisions, fps) {
         // default values
-        fps = (typeof fps === "undefined") ? 60 : fps; // 60 fps default
         isHorizontal = (typeof horizontal === "undefined") ? true : horizontal;
         enabledCollisions = (typeof collisions === "undefined") ? false : collisions;
+        fps = (typeof fps === "undefined") ? 60 : fps; // 60 fps default
 
         // init parameters
         canvas =  document.getElementById(canvasId);

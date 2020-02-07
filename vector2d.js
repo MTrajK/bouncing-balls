@@ -3,7 +3,7 @@
 
     const NEAR_ZERO = 0.01;
 
-    // Note: this class should be used as immutable class!
+    // Note: this class should be used as immutable class?????
     function Vector2d(x, y) {
         // constructor for 2 dimensional vector
         this.X = x;
@@ -63,16 +63,29 @@
     }
     
     Vector2d.prototype.sub = function(v) {
-        // substract this from 'v' vector (direction from this to 'v' vector)
+        // substract 'v' from this vector (direction from this to 'v' vector)
         return new Vector2d(
-            v.X - this.X,
-            v.Y - this.Y
+            this.X - v.X,
+            this.Y - v.Y
         );
     };
 
     Vector2d.prototype.dot = function(v) {
         // dot product between this and 'v' vector
         return this.X * v.X + this.Y * v.Y;
+    };
+
+    Vector2d.prototype.opposite = function() {
+        // opposite from this vector
+        return new Vector2d(
+            -this.X,
+            -this.Y
+        );
+    };
+
+    Vector2d.prototype.direction = function(v) {
+        // direction from this to 'v' vector
+        return this.sub(v).opposite();
     };
 
     Vector2d.prototype.isNearZero = function() {
