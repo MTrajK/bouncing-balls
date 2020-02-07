@@ -21,9 +21,9 @@
         strokeStyle: "#000000"
     };
 
-    /*********************************************************************************
-    ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS AND UPDATE FUNCTION **
-    /*********************************************************************************/
+    /******************************************************************************************
+    ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS, PUBLIC AND UPDATE FUNCTIONS **
+    *******************************************************************************************/
     var updateInterval, canvas, context, canvasDimensions, isLeftMouseBtnDown, balls,
         isHorizontal, enabledCollisions, mousePosition, newBallPosition, newBallDirection;
 
@@ -258,7 +258,7 @@
         canvas.width = canvas.height = 0;
     }
 
-    /* Save this class as global, no need from looking for root because this script must run in browser */
+    /* Save these functions as global, no need from looking for the root because this script must run in browser */
     window.BouncingBalls = {
         init: init,
         clear: clear

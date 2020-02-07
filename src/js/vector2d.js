@@ -82,7 +82,7 @@
 
     Vector2d.prototype.direction = function(v) {
         // direction from this to 'v' vector
-        return this.sub(v).opposite();
+        return v.sub(this);
     };
 
     Vector2d.prototype.isNearZero = function() {
@@ -100,7 +100,7 @@
         return new Vector2d(0, 0);
     }
 
-    Vector2d.NEAR_ZERO = 0.01;
+    Vector2d.NEAR_ZERO = 0.01; // Machine epsilon (an upper bound on the relative error due to rounding in floating point arithmetic)
 
     // Establish the root object, `window` (`self`) in the browser, `global`
     // on the server, or `this` in some virtual machines.

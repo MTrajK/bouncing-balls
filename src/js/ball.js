@@ -1,12 +1,13 @@
-/*********************************************************
-    Notees about the Physics in the simulation: 
-    The walls are harder than the balls, so the ball lost kinetic energy when bouncing from a wall.
-    But the balls are equally hard (and have equal weight), so they don't lost energy when bouncing between themself.
-    So the collision between balls is elastic.
-*********************************************************/
-
 (function(){
     "use strict";
+
+    /*********************************************************
+        Notes about the physics in the simulations: 
+        The balls are equally hard (and have equal weight), so they don't lose energy when bouncing between themself.
+        In the horizontal simulation, a ball loses energy when bouncing from a wall (the wall is harder and stationary).
+        The ball also loses energy from the air and gravity in vertical simulation 
+        (but not from spinning and some other 3d things possible in billiard and basketball).
+    *********************************************************/
 
     /**************
      * Ball class *
