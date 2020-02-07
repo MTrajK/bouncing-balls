@@ -1,25 +1,34 @@
 # Bouncing Balls
 
-Simple bouncing balls physics using plain JavaScript.
+Simple bouncing balls simulation using plain JavaScript.
 Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/code)
 
-## Ideas
+**[Try it here](https://mtrajk.github.io/bouncing-balls/)**
 
-- Redraw/update the canvas on intervals. (let's say frames per seconds 60) - **DONE**
-    * Use SetInterval method
-- Make the canvas responsive, when resizing the window the balls should resize and the location should be the same inside the canvas. - **DONE**
-    * Use CSS media queries for responsivnest
-    * Use local coordinates for the balls
-- The random shoting is too easy, make an aim (pointing arrow, inverse from pulling). - **DONE**
-    * Handle mouse moving, mouse up and mouse down
-- Add logic for vertical space bouncing. - **DONE**
-- Add logic for collisions. - **DONE**
-- Use inheritance for the diferent bouncing - **DONE**
-- Add 2 checkboxes on the first screen (one for vertical/horizontal space, and one for collisions, 4 possible combinations) and control this from another script. - **DONE**
-- Make unit tests. Using Mocha framework (rung -> npm test). - **DONE**
-- Simulation available on gh pages.
+<p align="center">
+    <img src="https://raw.githubusercontent.com/MTrajK/bouncing-balls/master/images/smaller_screen.gif" width="600" title="simulation">
+</p>
 
-- how to run tests using mocha:
-    1. instal node js
-    2. install mocha in the project -> npm install mocha
-    3. run tests from this project -> npm test
+
+## Description
+
+- The canvas is updated (redrawn) 60 times in 1 second. (60 fps)
+- The canvas is responsive, with help from CSS media queries.
+- Because of that, the whole physics engine (all maths and logics inside) works with local coordinates/units. The local width is always 100 local units, and the height is always 66.6667 local units. (because the canvas ratio is 3:2)
+- The simulation is not a 100% real-world simulation, because there are many more factors for moving/colliding in the real world like the ball spinning, the softness of balls, the type of walls, even the weather, and sound waves have influence in the real world.
+- More description of the physics you can find inside the code, for example, when the balls collide these formulas are used, [link](https://en.wikipedia.org/wiki/Elastic_collision).
+
+
+## Repo structure
+
+- [images](images) - several gifs from the simulations
+- [test](test) - unit tests. [Mocha](https://mochajs.org/) framework used for unit testing. How to run these tests using Mocha:
+    * install [NodeJS](https://nodejs.org/)
+    * install mocha in this project ``npm install mocha``
+    * run the tests from this project ``npm test``
+- [src](src) - the source code of the application
+
+
+## License
+
+This project is licensed under the MIT - see the [LICENSE](LICENSE) file for details
