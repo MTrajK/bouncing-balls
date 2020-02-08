@@ -1,5 +1,5 @@
 (function(){
-    "use strict";
+    'use strict';
 
     function Vector2d(x, y) {
         // constructor for 2 dimensional vector
@@ -92,6 +92,11 @@
     Vector2d.prototype.isNearZero = function() {
         // check if near zero vector
         return this.length() < Vector2d.NEAR_ZERO;
+    }
+
+    Vector2d.prototype.isUndefined = function() {
+        // check if undefined vector
+        return typeof this.X == 'undefined' || typeof this.Y == 'undefined';
     }
 
     Vector2d.prototype.clone = function() {
