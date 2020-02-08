@@ -12,6 +12,7 @@ Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/c
 
 ## Description
 
+- With a mouse click on the canvas a new ball is created, aim with holding the mouse down and moving it (drag the mouse further from the start point for greater speed), shoot the new ball with releasing the mouse button.
 - The canvas is updated (redrawn) 60 times in 1 second. (60 fps)
 - The canvas is responsive, with help from CSS media queries.
 - Because of that, the whole physics engine (all maths and logics inside) works with local coordinates/units. The local width is always 100 local units, and the height is always 66.6667 local units. (because the canvas ratio is 3:2)
