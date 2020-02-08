@@ -1,5 +1,5 @@
 (function(){
-    "use strict";
+    'use strict';
 
     /*********************************************************
         Notes about the physics in the simulations:

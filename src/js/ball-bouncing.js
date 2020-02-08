@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     /**************
     ** CONSTANTS **
@@ -12,19 +12,19 @@
         radius: 1, // local units
         startAngle: 0,
         endAngle: 2 * Math.PI,
-        fillStyle: "#000000"
+        fillStyle: '#000000'
     };
     const aimProperties = {
         shrink: 0.6,
         maxSpeed: 30, // local units
         headPart: 0.2,
-        strokeStyle: "#000000"
+        strokeStyle: '#000000'
     };
 
     /******************************************************************************************
     ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS, PUBLIC AND UPDATE FUNCTIONS **
     *******************************************************************************************/
-    var updateInterval, canvas, context, canvasDimensions, isLeftMouseBtnDown, balls,
+    var updateInterval, canvas, context, canvasDimensions, isAiming, balls,
         isHorizontal, enabledCollisions, mousePosition, newBallPosition, newBallDirection;
 
     /************
@@ -41,7 +41,7 @@
     }
 
     function addNewBall() {
-        isLeftMouseBtnDown = false;
+        isAiming = false;
 
         // save the new ball
         var newBall;
@@ -122,36 +122,38 @@
     ** EVENT LISTENERS **
     *********************/
     function onMouseMove(event) {
-        var eventDoc, doc, body;
+        if (isAiming) {
+            var eventDoc, doc, body;
+            event = event || window.event; // IE-ism
 
-        event = event || window.event; // IE-ism
+            // if pageX/Y aren't available and clientX/Y are, calculate pageX/Y - logic taken from jQuery.
+            // (this is to support old IE)
+            if (event.pageX == null && event.clientX != null) {
+                eventDoc = (event.target && event.target.ownerDocument) || document;
+                doc = eventDoc.documentElement;
+                body = eventDoc.body;
 
-        // if pageX/Y aren't available and clientX/Y are, calculate pageX/Y - logic taken from jQuery.
-        // (this is to support old IE)
-        if (event.pageX == null && event.clientX != null) {
-            eventDoc = (event.target && event.target.ownerDocument) || document;
-            doc = eventDoc.documentElement;
-            body = eventDoc.body;
+                event.pageX = event.clientX +
+                (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                (doc && doc.clientLeft || body && body.clientLeft || 0);
+                event.pageY = event.clientY +
+                (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+                (doc && doc.clientTop  || body && body.clientTop  || 0 );
+            }
 
-            event.pageX = event.clientX +
-            (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
-            (doc && doc.clientLeft || body && body.clientLeft || 0);
-            event.pageY = event.clientY +
-            (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
-            (doc && doc.clientTop  || body && body.clientTop  || 0 );
-        }
+            const dimensions = getCanvasDimensions();
 
-        const dimensions = getCanvasDimensions();
+            // convert mouse coordinates to local coordinates
+            mousePosition = new Vector2d(event.pageX, event.pageY).convertToLocal(dimensions);
+            if (newBallPosition.isUndefined())
+                newBallPosition = mousePosition.clone(); // start aiming
 
-        // convert mouse coordinates to local coordinates
-        mousePosition = new Vector2d(event.pageX, event.pageY).convertToLocal(dimensions);
-
-        if (isLeftMouseBtnDown) {
             // check where the pointer is located
             if (mousePosition.X <= 0 || mousePosition.X >= localDimensions.width
                 || mousePosition.Y <= 0 || mousePosition.Y >= localDimensions.height) {
                 addNewBall();
             } else {
+                // calculate aim direction
                 newBallDirection = mousePosition.direction(newBallPosition);
 
                 // directionLength shoud be smaller or equal to aimProperties.maxSpeed
@@ -162,23 +164,47 @@
         }
     }
 
-    function onMouseDown(e) {
-        if (e.button === 0) { // check if the left mouse button is pressed
-            isLeftMouseBtnDown = true;
-            newBallPosition = mousePosition.clone();
+    function onMouseDown(event) {
+        // button=0 is left mouse click, button=1 is middle mouse click, button=2 is right mouse click
+        if (event.button === 0) {
+            isAiming = true;
+            onMouseMove(event); // calculate the start position
+        } else if (isAiming) {
+            addNewBall();
         }
     }
 
     function onMouseUp() {
-        if (isLeftMouseBtnDown)
+        if (isAiming)
             addNewBall();
+    }
+
+    function onTouchMove(event) {
+        // isAiming will be true ONLY if 1 finger touches the screen
+        onMouseMove(event.touches[0]);
+    }
+
+    function onTouchStart(event) {
+        if (event.touches.length === 1) {
+            var mouseEvent = event.touches[0];
+            mouseEvent.button = 0; // imitate a left mouse button click
+            onMouseDown(mouseEvent);
+        } else {
+            onMouseUp();
+        }
+        event.preventDefault();
+    }
+
+    function onTouchEnd() {
+        onMouseUp();
+        event.preventDefault();
     }
 
     /******************
     ** MAIN FUNCTION **
     *******************/
     function update() {
-        /* updates the canvas in every "interval" miliseconds */
+        /* updates the canvas in every 'interval' miliseconds */
 
         // check dimensions and clear canvas
         // the canvas is cleared when a new value is attached to dimensions (no matter if a same value)
@@ -187,11 +213,11 @@
         canvas.height = dimensions.height;
 
         // draw canvas border
-        context.strokeStyle = "#000000";
+        context.strokeStyle = '#000000';
         context.strokeRect(0, 0, dimensions.width, dimensions.height);
 
         // aiming mode
-        if (isLeftMouseBtnDown) {
+        if (isAiming) {
             // draw new ball
             drawBall(newBallPosition, dimensions.scaleRatio);
             // draw aim
@@ -219,24 +245,29 @@
     **********************/
     function init(canvasId, dimensionsId, horizontal, collisions, fps) {
         // default values
-        isHorizontal = (typeof horizontal === "undefined") ? true : horizontal;
-        enabledCollisions = (typeof collisions === "undefined") ? false : collisions;
-        fps = (typeof fps === "undefined") ? 60 : fps; // 60 fps default
+        isHorizontal = (typeof horizontal == 'undefined') ? true : horizontal;
+        enabledCollisions = (typeof collisions == 'undefined') ? true : collisions;
+        fps = (typeof fps == 'undefined') ? 60 : fps; // 60 fps default
 
         // init parameters
         canvas =  document.getElementById(canvasId);
-        context = canvas.getContext("2d");
+        context = canvas.getContext('2d');
         canvasDimensions = document.getElementById(dimensionsId);
-        isLeftMouseBtnDown = false;
+        isAiming = false;
         mousePosition = new Vector2d(); // X & Y should be represented with local coordinates
         newBallPosition = new Vector2d(); // X & Y should be represented with local coordinates
         newBallDirection = Vector2d.zero();
         balls = [];
 
-        // add event listeners
-        document.addEventListener("mousemove", onMouseMove);
-        canvas.addEventListener("mousedown", onMouseDown);
-        canvas.addEventListener("mouseup", onMouseUp);
+        // add mouse event listeners
+        canvas.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('mousedown', onMouseDown);
+
+        // add touch event listeners
+        canvas.addEventListener('touchstart', onTouchStart);
+        document.addEventListener('touchmove', onTouchMove);
+        canvas.addEventListener('touchend', onTouchEnd);
 
         // set interval
         const intervalMs = 1000 / fps; // interval in milliseconds
@@ -244,10 +275,15 @@
     }
 
     function clear() {
-        // remove event listeners
-        document.removeEventListener("mousemove", onMouseMove);
-        canvas.removeEventListener("mousedown", onMouseDown);
-        canvas.removeEventListener("mouseup", onMouseUp);
+        // remove mouse event listeners
+        canvas.removeEventListener('mousedown', onMouseDown);
+        document.removeEventListener('mousemove', onMouseMove);
+        canvas.removeEventListener('mouseup', onMouseUp);
+
+        // remove touch event listeners
+        canvas.removeEventListener('touchstart', onTouchStart);
+        document.removeEventListener('touchmove', onTouchMove);
+        canvas.removeEventListener('touchend', onTouchEnd);
 
         // clear interval
         clearInterval(updateInterval);
