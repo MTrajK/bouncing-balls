@@ -29,7 +29,7 @@ Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/c
     * run the tests from this project ``npm test``
 - [src](src) - the source code of the application
     * [index.html](https://github.com/MTrajK/bouncing-balls/tree/master/src/index.html) - a simple HTML page, JS and CSS files are imported and the choices and canvas are defined here
-    * [css/styless.css](https://github.com/MTrajK/bouncing-balls/tree/master/src/css/styless.css) - used to define media queries (for responsiveness), and other very simple CSS rules
+    * [css/styles.css](https://github.com/MTrajK/bouncing-balls/tree/master/src/css/styles.css) - used to define media queries (for responsiveness), and other very simple CSS rules
     * [js/choice.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/choice.js) - used to initialize and stop the simulation
     * [js/bouncing-balls.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/bouncing-balls.js) - the main function (update interval), and the mouse and touch events are defined here
     * [js/balls.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/balls.js) - balls collision and movements logics
