@@ -27,7 +27,7 @@
         // if zero vector, returns it
         var length = this.length();
         if (length == 0)
-            return this.clone();
+            return Vector2d.zero();
         return this.div(this.length());
     }
 
@@ -89,6 +89,11 @@
         return v.sub(this);
     };
 
+    Vector2d.prototype.isZero = function() {
+        // check if zero vector
+        return this.X == 0 && this.Y == 0;
+    }
+
     Vector2d.prototype.isNearZero = function() {
         // check if near zero vector
         return this.length() < Vector2d.NEAR_ZERO;
@@ -107,6 +112,11 @@
     Vector2d.zero = function() {
         // static function for a zero vector
         return new Vector2d(0, 0);
+    }
+
+    Vector2d.random = function() {
+        // static function for a random vector
+        return new Vector2d(Math.random(), Math.random());
     }
 
     Vector2d.NEAR_ZERO = 0.01; // a small value used to detect stationary balls (non eye-catchable moving)
