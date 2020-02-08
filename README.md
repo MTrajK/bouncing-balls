@@ -6,13 +6,13 @@ Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/c
 **[Try it here](https://mtrajk.github.io/bouncing-balls/)**
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/MTrajK/bouncing-balls/master/images/smaller_screen.gif" width="600" title="simulation">
+    <img src="https://raw.githubusercontent.com/MTrajK/bouncing-balls/master/images/smaller_screen.gif" width="800px" title="simulation">
 </p>
 
 
 ## Description
 
-- With a mouse click on the canvas a new ball is created, aim with holding the mouse down and moving it (drag the mouse further from the start point for greater speed), shoot the new ball with releasing the mouse button.
+- With a mouse click on the canvas a new ball is created, aim with holding the mouse down and moving it (drag the mouse further from the start point for greater speed), shoot the new ball with releasing the mouse button. (also touch screens/devices are supported, the same rules are used for touch events)
 - The canvas is updated (redrawn) 60 times in 1 second. (60 fps)
 - The canvas is responsive, with help from CSS media queries.
 - Because of that, the whole physics engine (all maths and logics inside) works with local coordinates/units. The local width is always 100 local units, and the height is always 66.6667 local units. (because the canvas ratio is 3:2)
@@ -23,11 +23,17 @@ Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/c
 ## Repo structure
 
 - [images](images) - several gifs from the simulations
-- [test](test) - unit tests. [Mocha](https://mochajs.org/) framework used for unit testing. How to run these tests using Mocha:
+- [test](test) - unit tests, [Mocha](https://mochajs.org/) framework is used for unit testing.This is how to run these tests using Mocha:
     * install [NodeJS](https://nodejs.org/)
     * install mocha in this project ``npm install mocha``
     * run the tests from this project ``npm test``
 - [src](src) - the source code of the application
+    * [index.html](https://github.com/MTrajK/bouncing-balls/tree/master/src/index.html) - a simple HTML page, JS and CSS files are imported and the choices and canvas are defined here
+    * [css/styless.css](https://github.com/MTrajK/bouncing-balls/tree/master/src/css/styless.css) - used to define media queries (for responsiveness), and other very simple CSS rules
+    * [js/choice.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/choice.js) - used to initialize and stop the simulation
+    * [js/bouncing-balls.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/bouncing-balls.js) - the main function (update interval), and the mouse and touch events are defined here
+    * [js/balls.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/balls.js) - balls collision and movements logics
+    * [js/vector2d.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/vector2d.js) - 2 dimensional vector class, all vector related things are located here
 
 
 ## License

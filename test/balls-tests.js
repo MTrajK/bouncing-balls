@@ -1,6 +1,6 @@
 var assert = require('assert');
 var Vector2d = require('../src/js/vector2d.js').Vector2d;
-var Balls = require('../src/js/ball.js').Balls;
+var Balls = require('../src/js/balls.js').Balls;
 
 describe('Balls', function() {
     const localDimensions = {
