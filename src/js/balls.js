@@ -83,7 +83,7 @@
         var lowestPoint = this._localDimensions.height - this.radius;
 
         if (this.velocity.isNearZero()) {
-            if (this.velocity.isZero())
+            if (!this.velocity.isZero())
                 this.velocity = Vector2d.zero();
             return; // the ball is staying in place
         }
@@ -142,7 +142,7 @@
         var lowestPoint = this._localDimensions.height - this.radius;
 
         if (this.velocity.isNearZero() && this.position.Y == lowestPoint) {
-            if (this.velocity.isZero())
+            if (!this.velocity.isZero())
                 this.velocity = Vector2d.zero();
             return; // the ball is staying in place
         }
