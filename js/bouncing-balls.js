@@ -12,13 +12,14 @@
         radius: 1, // local units
         startAngle: 0,
         endAngle: 2 * Math.PI,
-        fillStyle: '#000000'
+        color: '#000000'
     };
     const aimProperties = {
         shrink: 0.6,
         maxSpeed: 30, // local units
         headPart: 0.2,
-        strokeStyle: '#000000'
+        strokeAngle: Math.PI / 5,
+        color: '#000000'
     };
 
     /******************************************************************************************
@@ -69,11 +70,17 @@
     /************
     ** DRAWING **
     *************/
+    function drawCanvasBorder(dimensions) {
+        context.strokeStyle = '#000000';
+        context.strokeRect(0, 0, dimensions.width, dimensions.height);
+    }
+
     function drawBall(ballCoords, scaleRatio) {
-        context.fillStyle = ballProperties.fillStyle;
+        const scaledCoords = ballCoords.mult(scaleRatio); // convert the coordinates in CANVAS size
+
+        context.fillStyle = ballProperties.color;
         context.beginPath();
-        context.arc(ballCoords.X * scaleRatio, ballCoords.Y * scaleRatio,   // convert coordinates in CANVAS size
-            ballProperties.radius * scaleRatio,
+        context.arc(scaledCoords.X, scaledCoords.Y, ballProperties.radius * scaleRatio, // convert the radius too
             ballProperties.startAngle, ballProperties.endAngle);
         context.fill();
     }
@@ -89,23 +96,16 @@
         // convert start and end points in CANVAS coordinates (using scaleRatio)
         // move the start point on the ball border (using the ball direction)
         // and adjust end point (using the start point)
-        const startPoint = new Vector2d(
-            (newBallPosition.X + newBallDirection.X * radiusRatio) * scaleRatio,
-            (newBallPosition.Y + newBallDirection.Y * radiusRatio) * scaleRatio
-        );
-        const endPoint = new Vector2d(
-            startPoint.X + newBallDirection.X * scaledShrink,
-            startPoint.Y + newBallDirection.Y * scaledShrink
-        );
+        const startPoint = newBallPosition.add(newBallDirection.mult(radiusRatio)).mult(scaleRatio);
+        const endPoint = startPoint.add(newBallDirection.mult(scaledShrink));
 
         // calculate head strokes angle
         const headLength = directionLength * scaledShrink * aimProperties.headPart;
         const arrowAngle = newBallDirection.angle(); // angle between Y axis and the arrow direction
-        const strokeAngle = Math.PI / 5;
-        const leftStrokeAngle = arrowAngle - strokeAngle;
-        const rightStrokeAngle = arrowAngle + strokeAngle;
+        const leftStrokeAngle = arrowAngle - aimProperties.strokeAngle;
+        const rightStrokeAngle = arrowAngle + aimProperties.strokeAngle;
 
-        context.strokeStyle = aimProperties.strokeStyle;
+        context.strokeStyle = aimProperties.color;
         // draw the body
         context.moveTo(startPoint.X, startPoint.Y);
         context.lineTo(endPoint.X, endPoint.Y);
@@ -141,9 +141,8 @@
                 (doc && doc.clientTop  || body && body.clientTop  || 0 );
             }
 
-            const dimensions = getCanvasDimensions();
-
             // convert mouse coordinates to local coordinates
+            const dimensions = getCanvasDimensions();
             mousePosition = new Vector2d(event.pageX, event.pageY).convertToLocal(dimensions);
             if (newBallPosition.isUndefined())
                 newBallPosition = mousePosition.clone(); // start aiming
@@ -213,8 +212,7 @@
         canvas.height = dimensions.height;
 
         // draw canvas border
-        context.strokeStyle = '#000000';
-        context.strokeRect(0, 0, dimensions.width, dimensions.height);
+        drawCanvasBorder(dimensions);
 
         // aiming mode
         if (isAiming) {
