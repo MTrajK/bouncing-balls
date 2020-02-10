@@ -17,7 +17,12 @@
         this.position = position;
         this.velocity = velocity;
         this.radius = radius;
-        this._localDimensions = localDimensions;
+        this._borderCoords = {
+            top: radius,
+            bottom: localDimensions.height - radius,
+            left: radius,
+            right: localDimensions.width - radius
+        };
     }
 
     Ball.prototype.collision = function(ball) {
@@ -40,18 +45,19 @@
             }
 
             // apply a random vector if both velocities are zero vectors
-            var zeroVectors = this.velocity.isZero() && ball.velocity.isZero();
-            if (zeroVectors) {
+            const applyRandomVector = this.velocity.isZero() && ball.velocity.isZero();
+            if (applyRandomVector) {
                 this.velocity = Vector2d.random();
                 ball.velocity = this.velocity.opposite();
             }
 
             // move balls outside of collision
-            const diff = (minDistance - distance) / 2 + 0.0001;
+            const diff = (minDistance - distance) / 2 + 0.001; // add a very small value so they won't touch
             this.position = this.position.add(this.velocity.tryNormalize().mult(diff));
             ball.position = ball.position.add(ball.velocity.tryNormalize().mult(diff));
 
-            if (zeroVectors) {
+            // if a random vector is applied revert the zero vectors
+            if (applyRandomVector) {
                 this.velocity = Vector2d.zero();
                 ball.velocity = Vector2d.zero();
             }
@@ -79,20 +85,16 @@
     }
 
     HorizontalBall.prototype.update = function() {
-        var rightMostPoint = this._localDimensions.width - this.radius;
-        var lowestPoint = this._localDimensions.height - this.radius;
+        if (this.velocity.isNearZero() && !this.velocity.isZero())
+            this.velocity = Vector2d.zero(); // the ball is staying in place
 
-        if (this.velocity.isNearZero()) {
-            if (!this.velocity.isZero())
-                this.velocity = Vector2d.zero();
-            return; // the ball is staying in place
-        }
-
+        // move the ball using the velocity
         this.position = this.position.add(this.velocity);
 
-        if (this.position.X <= this.radius || this.position.X >= rightMostPoint) {
+        if (this.position.X <= this._borderCoords.left || this.position.X >= this._borderCoords.right) {
             // move ball inside the borders
-            this.position.X = (this.position.X <= this.radius) ? this.radius : rightMostPoint;
+            this.position.X = (this.position.X <= this._borderCoords.left) ? 
+                                this._borderCoords.left : this._borderCoords.right;
 
             // apply hit resistance
             this.velocity = this.velocity.mult(horizontalMovementProperties.hitResistance);
@@ -100,9 +102,10 @@
             // reflection angle is an inverse angle to the perpendicular axis to the wall (in this case the wall is Y axis)
             this.velocity.X = -this.velocity.X;
         }
-        if (this.position.Y <= this.radius || this.position.Y >= lowestPoint) {
+        if (this.position.Y <= this._borderCoords.top || this.position.Y >= this._borderCoords.bottom) {
             // move ball inside the borders
-            this.position.Y = (this.position.Y <= this.radius) ? this.radius : lowestPoint;
+            this.position.Y = (this.position.Y <= this._borderCoords.top) ? 
+                                this._borderCoords.top : this._borderCoords.bottom;
 
             // apply hit resistance
             this.velocity = this.velocity.mult(horizontalMovementProperties.hitResistance);
@@ -121,7 +124,7 @@
     const verticalMovementProperties = {
         airResistance: 0.995, // slows down the speed in each frame
         hitResistance: 0.8, // slows down the Y speed when the surface is hitted
-        rollingResistance: 0.985, // slows down the X speed when rolling on the ground
+        rollingResistance: 0.98, // slows down the X speed when rolling on the ground
         gravity: 0.05, // pulls the ball to the ground in each frame
         velocityFactor: 0.07 // velocity factor (converts vector from the mouse dragging to this environment)
     };
@@ -138,29 +141,26 @@
     }
 
     VerticalBall.prototype.update = function() {
-        var rightMostPoint = this._localDimensions.width - this.radius;
-        var lowestPoint = this._localDimensions.height - this.radius;
+        if (this.velocity.isNearZero() && this.position.Y == this._borderCoords.bottom && !this.velocity.isZero())
+            this.velocity = Vector2d.zero(); // the ball is staying in place
 
-        if (this.velocity.isNearZero() && this.position.Y == lowestPoint) {
-            if (!this.velocity.isZero())
-                this.velocity = Vector2d.zero();
-            return; // the ball is staying in place
-        }
-
+        // move the ball using the velocity
         this.position = this.position.add(this.velocity);
 
-        if (this.position.X <= this.radius || this.position.X >= rightMostPoint) {
+        if (this.position.X <= this._borderCoords.left || this.position.X >= this._borderCoords.right) {
             // move ball inside the borders
-            this.position.X = (this.position.X <= this.radius) ? this.radius : rightMostPoint;
+            this.position.X = (this.position.X <= this._borderCoords.left) ? 
+                                this._borderCoords.left : this._borderCoords.right;
 
             // reflection
             this.velocity.X = -this.velocity.X;
         }
-        if (this.position.Y <= this.radius || this.position.Y >= lowestPoint) {
+        if (this.position.Y <= this._borderCoords.top || this.position.Y >= this._borderCoords.bottom) {
             // move ball inside the borders
-            this.position.Y = (this.position.Y <= this.radius) ? this.radius : lowestPoint;
+            this.position.Y = (this.position.Y <= this._borderCoords.top) ? 
+                                this._borderCoords.top : this._borderCoords.bottom;
 
-            if (this.position.Y == lowestPoint) {
+            if (this.position.Y == this._borderCoords.bottom) {
                 // when ball is on the ground, update resistances
                 this.velocity.Y *= verticalMovementProperties.hitResistance;
                 this.velocity.X *= verticalMovementProperties.rollingResistance;
@@ -173,7 +173,7 @@
         // apply air resistance
         this.velocity = this.velocity.mult(verticalMovementProperties.airResistance);
 
-        if (this.position.Y == lowestPoint && Math.abs(this.velocity.Y) <= Vector2d.NEAR_ZERO)
+        if (this.position.Y == this._borderCoords.bottom && Math.abs(this.velocity.Y) <= Vector2d.NEAR_ZERO)
             // the ball isn't falling or jumping
             this.velocity.Y = 0;
         else

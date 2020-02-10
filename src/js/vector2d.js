@@ -9,7 +9,7 @@
 
     Vector2d.prototype.length = function() {
         // lenght of this vector (Pythagorean theorem)
-        return Math.sqrt(this.X*this.X + this.Y*this.Y)
+        return Math.sqrt(this.X*this.X + this.Y*this.Y);
     }
 
     Vector2d.prototype.distance = function(v) {
