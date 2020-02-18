@@ -1,5 +1,5 @@
 var assert = require('assert');
-var Vector2d = require('../src/js/vector2d.js').Vector2d;
+var Vector2D = require('../src/js/vector2d.js').Vector2D;
 var Balls = require('../src/js/balls.js').Balls;
 
 describe('Balls', function() {
@@ -17,17 +17,17 @@ describe('Balls', function() {
     describe('no collision', function() {
         it('should have the same position before and after method', function() {
             // arrange
-            var oldPositionA = new Vector2d(50, 50);
+            var oldPositionA = new Vector2D(50, 50);
             var ballA = new Balls.VerticalBall(
                 oldPositionA.clone(),
-                new Vector2d(10, 0),
+                new Vector2D(10, 0),
                 ballRadius,
                 localDimensions
             );
-            var oldPositionB = new Vector2d(60, 50);
+            var oldPositionB = new Vector2D(60, 50);
             var ballB = new Balls.VerticalBall(
                 oldPositionB.clone(),
-                new Vector2d(10, 0),
+                new Vector2D(10, 0),
                 ballRadius,
                 localDimensions
             );
@@ -45,18 +45,18 @@ describe('Balls', function() {
     describe('1 moving ball collision', function() {
         it('should move the stationary ball and stop the moving ball', function() {
             // arrange
-            var oldPositionA = new Vector2d(50, 50);
+            var oldPositionA = new Vector2D(50, 50);
             var ballA = new Balls.VerticalBall(
                 oldPositionA.clone(),
-                new Vector2d(10, 0),
+                new Vector2D(10, 0),
                 ballRadius,
                 localDimensions
             );
             var oldVelocityA = ballA.velocity.clone();
-            var oldPositionB = new Vector2d(50.5, 50);
+            var oldPositionB = new Vector2D(50.5, 50);
             var ballB = new Balls.VerticalBall(
                 oldPositionB.clone(),
-                new Vector2d(0, 0),
+                new Vector2D(0, 0),
                 ballRadius,
                 localDimensions
             );
@@ -79,18 +79,18 @@ describe('Balls', function() {
     describe('2 moving balls collision', function() {
         it('should change the velocity vectors of both balls', function() {
             // arrange
-            var oldPositionA = new Vector2d(50, 50);
+            var oldPositionA = new Vector2D(50, 50);
             var ballA = new Balls.VerticalBall(
                 oldPositionA.clone(),
-                new Vector2d(10, 0),
+                new Vector2D(10, 0),
                 ballRadius,
                 localDimensions
             );
             var oldVelocityA = ballA.velocity.clone();
-            var oldPositionB = new Vector2d(50.5, 50);
+            var oldPositionB = new Vector2D(50.5, 50);
             var ballB = new Balls.VerticalBall(
                 oldPositionB.clone(),
-                new Vector2d(-7, 0),
+                new Vector2D(-7, 0),
                 ballRadius,
                 localDimensions
             );
@@ -113,8 +113,8 @@ describe('Balls', function() {
     describe('horizontal ball moving', function() {
         it('should move the ball in direction', function() {
             // arrange
-            var oldPosition = new Vector2d(50, 50);
-            var oldVelocity = new Vector2d(10, 0);
+            var oldPosition = new Vector2D(50, 50);
+            var oldVelocity = new Vector2D(10, 0);
             var ball = new Balls.HorizontalBall(
                 oldPosition.clone(),
                 oldVelocity.clone(),
@@ -123,7 +123,7 @@ describe('Balls', function() {
             );
 
             // act
-            ball.update();
+            ball.move();
 
             // assert
             var direction = oldPosition.direction(ball.position).tryNormalize();
@@ -135,8 +135,8 @@ describe('Balls', function() {
     describe('horizontal ball wall collision', function() {
         it('should reflect the angle of moving and position inside borders', function() {
             // arrange
-            var oldPosition = new Vector2d(99.5, 50);
-            var oldVelocity = new Vector2d(10, 0);
+            var oldPosition = new Vector2D(99.5, 50);
+            var oldVelocity = new Vector2D(10, 0);
             var ball = new Balls.HorizontalBall(
                 oldPosition.clone(),
                 oldVelocity.clone(),
@@ -145,7 +145,7 @@ describe('Balls', function() {
             );
 
             // act
-            ball.update();
+            ball.move();
 
             // assert
             var newVelocity = ball.velocity.tryNormalize();

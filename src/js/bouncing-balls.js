@@ -4,6 +4,7 @@
     /**************
     ** CONSTANTS **
     ***************/
+    const fps = 60; // Note: if you change this, you'll need to addapt gravity and resistance logic in ball.js
     const localDimensions = {
         width: 100, // 1 localDimensions.width is 1 local unit
         height: 100 * (2/3) // the canvas ratio is always 3:2
@@ -23,7 +24,7 @@
     };
 
     /******************************************************************************************
-    ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS, PUBLIC AND UPDATE FUNCTIONS **
+    ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS, UPDATE AND PUBLIC FUNCTIONS **
     *******************************************************************************************/
     var updateInterval, canvas, context, canvasDimensions, isAiming, balls,
         isHorizontal, enabledCollisions, mousePosition, newBallPosition, newBallDirection;
@@ -63,8 +64,8 @@
         balls.push(newBall);
 
         // reset values
-        newBallDirection = Vector2d.zero();
-        newBallPosition = new Vector2d();
+        newBallDirection = Vector2D.zero();
+        newBallPosition = new Vector2D();
     }
 
     /************
@@ -78,10 +79,12 @@
     function drawBall(ballCoords, scaleRatio) {
         const scaledCoords = ballCoords.mult(scaleRatio); // convert the coordinates in CANVAS size
 
-        context.fillStyle = ballProperties.color;
         context.beginPath();
         context.arc(scaledCoords.X, scaledCoords.Y, ballProperties.radius * scaleRatio, // convert the radius too
             ballProperties.startAngle, ballProperties.endAngle);
+        context.closePath();
+
+        context.fillStyle = ballProperties.color;
         context.fill();
     }
 
@@ -105,7 +108,7 @@
         const leftStrokeAngle = arrowAngle - aimProperties.strokeAngle;
         const rightStrokeAngle = arrowAngle + aimProperties.strokeAngle;
 
-        context.strokeStyle = aimProperties.color;
+        context.beginPath();
         // draw the body
         context.moveTo(startPoint.X, startPoint.Y);
         context.lineTo(endPoint.X, endPoint.Y);
@@ -115,6 +118,8 @@
         context.moveTo(endPoint.X, endPoint.Y);
         context.lineTo(endPoint.X - headLength * Math.sin(rightStrokeAngle),
                         endPoint.Y - headLength * Math.cos(rightStrokeAngle));
+
+        context.strokeStyle = aimProperties.color;
         context.stroke();
     }
 
@@ -143,7 +148,7 @@
 
             // convert mouse coordinates to local coordinates
             const dimensions = getCanvasDimensions();
-            mousePosition = new Vector2d(event.pageX, event.pageY).convertToLocal(dimensions);
+            mousePosition = new Vector2D(event.pageX, event.pageY).convertToLocal(dimensions);
             if (newBallPosition.isUndefined())
                 newBallPosition = mousePosition.clone(); // start aiming
 
@@ -185,9 +190,8 @@
 
     function onTouchStart(event) {
         if (event.touches.length === 1) {
-            var mouseEvent = event.touches[0];
-            mouseEvent.button = 0; // imitate a left mouse button click
-            onMouseDown(mouseEvent);
+            event.touches[0].button = 0; // imitate a left mouse button click
+            onMouseDown(event.touches[0]);
         } else {
             onMouseUp();
         }
@@ -203,8 +207,6 @@
     ** MAIN FUNCTION **
     *******************/
     function update() {
-        /* updates the canvas in every 'interval' miliseconds */
-
         // check dimensions and clear canvas
         // the canvas is cleared when a new value is attached to dimensions (no matter if a same value)
         const dimensions = getCanvasDimensions();
@@ -222,16 +224,16 @@
             drawAim(dimensions.scaleRatio);
         }
 
-        // update ball movement
-        for (var i=0; i<balls.length; i++)
-            balls[i].update();
-
         if (enabledCollisions)
-            // check collisions
+            // check collisions and update positions & velocities
             // O(N^2) but this can be much faster, O(N*LogN) searching in quadtree structure, (or sort the points and check the closest O(N*LogN))
             for (var i=0; i<balls.length; i++)
                 for (var j=i+1; j<balls.length; j++)
                     balls[i].collision(balls[j]);
+
+        // update ball position & velocity
+        for (var i=0; i<balls.length; i++)
+            balls[i].move();
 
         // draw updated balls
         for (var i=0; i<balls.length; i++)
@@ -241,20 +243,19 @@
     /*********************
     ** PUBLIC FUNCTIONS **
     **********************/
-    function init(canvasId, dimensionsId, horizontal, collisions, fps) {
+    function init(canvasId, dimensionsId, horizontal, collisions) {
         // default values
         isHorizontal = (typeof horizontal == 'undefined') ? true : horizontal;
         enabledCollisions = (typeof collisions == 'undefined') ? true : collisions;
-        fps = (typeof fps == 'undefined') ? 60 : fps; // 60 fps default
 
         // init parameters
         canvas =  document.getElementById(canvasId);
         context = canvas.getContext('2d');
         canvasDimensions = document.getElementById(dimensionsId);
         isAiming = false;
-        mousePosition = new Vector2d(); // X & Y should be represented with local coordinates
-        newBallPosition = new Vector2d(); // X & Y should be represented with local coordinates
-        newBallDirection = Vector2d.zero();
+        mousePosition = new Vector2D(); // X & Y should be represented with local coordinates
+        newBallPosition = new Vector2D(); // X & Y should be represented with local coordinates
+        newBallDirection = Vector2D.zero();
         balls = [];
 
         // add mouse event listeners
@@ -268,8 +269,7 @@
         canvas.addEventListener('touchend', onTouchEnd);
 
         // set interval
-        const intervalMs = 1000 / fps; // interval in milliseconds
-        updateInterval = setInterval(update, intervalMs);
+        updateInterval = setInterval(update, 1000 / fps); // interval in milliseconds
     }
 
     function clear() {

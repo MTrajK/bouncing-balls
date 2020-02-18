@@ -30,9 +30,9 @@ Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/c
 - [src](src) - the source code of the application
     * [index.html](https://github.com/MTrajK/bouncing-balls/tree/master/src/index.html) - a simple HTML page, JS and CSS files are imported and the choices and canvas are defined here
     * [css/styles.css](https://github.com/MTrajK/bouncing-balls/tree/master/src/css/styles.css) - used to define media queries (for responsiveness), and other very simple CSS rules
-    * [js/choice.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/choice.js) - used to initialize and stop the simulation
-    * [js/bouncing-balls.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/bouncing-balls.js) - the main function (update interval), and the mouse and touch events are defined here
-    * [js/balls.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/balls.js) - balls collision and movements logics
+    * [js/choice.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/choice.js) - used to initialize and stop the simulation (using the values from the choices)
+    * [js/bouncing-balls.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/bouncing-balls.js) - handles the screen interaction (mouse and touch events) and draws in the canvas (some kind of mini game engine)
+    * [js/balls.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/balls.js) - balls collision and movement logics/physics
     * [js/vector2d.js](https://github.com/MTrajK/bouncing-balls/tree/master/src/js/vector2d.js) - 2 dimensional vector class, all vector related things are located here
 
 
