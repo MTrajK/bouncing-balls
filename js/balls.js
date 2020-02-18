@@ -27,27 +27,27 @@
 
     Ball.prototype.collision = function(ball) {
         const minDistance = ball.radius + this.radius;
-        const position_diff = this.position.sub(ball.position);
-        const distance = position_diff.length();
+        const positionSub = this.position.sub(ball.position);
+        const distance = positionSub.length();
 
         if (distance <= minDistance) {
             if (distance != 0) {
                 /*********************************************************
                     The formula could be found here: https://en.wikipedia.org/wiki/Elastic_collision
-                    velocityA -= (dot(velocityAB_diff, positionAB_diff) / distance^2) * positionAB_diff
-                    velocityB -= (dot(velocityBA_diff, positionBA_diff) / distance^2) * positionBA_diff
-                    but this thing (dot(velocityAB_diff, positionAB_diff) / distance^2) is same for 2 velocities
-                    because dot and length methods are commutative properties, and velocityAB_diff = -velocityBA_diff, same for position_diff
+                    velocityA -= (dot(velocityAB_sub, positionAB_sub) / distance^2) * positionAB_sub
+                    velocityB -= (dot(velocityBA_sub, positionBA_sub) / distance^2) * positionBA_sub
+                    but this thing (dot(velocityAB_sub, positionAB_sub) / distance^2) is same for 2 velocities
+                    because dot and length methods are commutative properties, and velocityAB_sub = -velocityBA_sub, same for positionSub
                 *********************************************************/
-                const coeff = this.velocity.sub(ball.velocity).dot(position_diff) / (distance * distance);
-                this.velocity = this.velocity.sub(position_diff.mult(coeff));
-                ball.velocity = ball.velocity.sub(position_diff.opposite().mult(coeff));
+                const coeff = this.velocity.sub(ball.velocity).dot(positionSub) / (distance * distance);
+                this.velocity = this.velocity.sub(positionSub.mult(coeff));
+                ball.velocity = ball.velocity.sub(positionSub.opposite().mult(coeff));
             }
 
             // apply a random vector if both velocities are zero vectors
             const applyRandomVector = this.velocity.isZero() && ball.velocity.isZero();
             if (applyRandomVector) {
-                this.velocity = Vector2d.random();
+                this.velocity = Vector2D.random();
                 ball.velocity = this.velocity.opposite();
             }
 
@@ -58,8 +58,8 @@
 
             // if a random vector is applied revert the zero vectors
             if (applyRandomVector) {
-                this.velocity = Vector2d.zero();
-                ball.velocity = Vector2d.zero();
+                this.velocity = Vector2D.zero();
+                ball.velocity = Vector2D.zero();
             }
         }
     }
@@ -79,21 +79,20 @@
         Ball.call(this, position, velocity.mult(horizontalMovementProperties.velocityFactor), radius, localDimensions);
     }
 
-    HorizontalBall.prototype.collision = function(ball) {
-        // call the base collision method
-        Ball.prototype.collision.call(this, ball);
-    }
+    // HorizontalBall inherits from the Ball class
+    HorizontalBall.prototype = Object.create(Ball.prototype);
+    HorizontalBall.prototype.constructor = HorizontalBall; // keep the constructor
 
-    HorizontalBall.prototype.update = function() {
+    HorizontalBall.prototype.move = function() {
         if (this.velocity.isNearZero() && !this.velocity.isZero())
-            this.velocity = Vector2d.zero(); // the ball is staying in place
+            this.velocity = Vector2D.zero(); // the ball is staying in place
 
         // move the ball using the velocity
         this.position = this.position.add(this.velocity);
 
         if (this.position.X <= this._borderCoords.left || this.position.X >= this._borderCoords.right) {
             // move ball inside the borders
-            this.position.X = (this.position.X <= this._borderCoords.left) ? 
+            this.position.X = (this.position.X <= this._borderCoords.left) ?
                                 this._borderCoords.left : this._borderCoords.right;
 
             // apply hit resistance
@@ -104,7 +103,7 @@
         }
         if (this.position.Y <= this._borderCoords.top || this.position.Y >= this._borderCoords.bottom) {
             // move ball inside the borders
-            this.position.Y = (this.position.Y <= this._borderCoords.top) ? 
+            this.position.Y = (this.position.Y <= this._borderCoords.top) ?
                                 this._borderCoords.top : this._borderCoords.bottom;
 
             // apply hit resistance
@@ -135,21 +134,20 @@
         Ball.call(this, position, velocity.mult(verticalMovementProperties.velocityFactor), radius, localDimensions);
     }
 
-    VerticalBall.prototype.collision = function(ball) {
-        // call the base collision method
-        Ball.prototype.collision.call(this, ball);
-    }
+    // VerticalBall inherits from the Ball class
+    VerticalBall.prototype = Object.create(Ball.prototype);
+    VerticalBall.prototype.constructor = VerticalBall; // keep the constructor
 
-    VerticalBall.prototype.update = function() {
+    VerticalBall.prototype.move = function() {
         if (this.velocity.isNearZero() && this.position.Y == this._borderCoords.bottom && !this.velocity.isZero())
-            this.velocity = Vector2d.zero(); // the ball is staying in place
+            this.velocity = Vector2D.zero(); // the ball is staying in place
 
         // move the ball using the velocity
         this.position = this.position.add(this.velocity);
 
         if (this.position.X <= this._borderCoords.left || this.position.X >= this._borderCoords.right) {
             // move ball inside the borders
-            this.position.X = (this.position.X <= this._borderCoords.left) ? 
+            this.position.X = (this.position.X <= this._borderCoords.left) ?
                                 this._borderCoords.left : this._borderCoords.right;
 
             // reflection
@@ -157,7 +155,7 @@
         }
         if (this.position.Y <= this._borderCoords.top || this.position.Y >= this._borderCoords.bottom) {
             // move ball inside the borders
-            this.position.Y = (this.position.Y <= this._borderCoords.top) ? 
+            this.position.Y = (this.position.Y <= this._borderCoords.top) ?
                                 this._borderCoords.top : this._borderCoords.bottom;
 
             if (this.position.Y == this._borderCoords.bottom) {
@@ -173,7 +171,7 @@
         // apply air resistance
         this.velocity = this.velocity.mult(verticalMovementProperties.airResistance);
 
-        if (this.position.Y == this._borderCoords.bottom && Math.abs(this.velocity.Y) <= Vector2d.NEAR_ZERO)
+        if (this.position.Y == this._borderCoords.bottom && Math.abs(this.velocity.Y) <= Vector2D.NEAR_ZERO)
             // the ball isn't falling or jumping
             this.velocity.Y = 0;
         else
