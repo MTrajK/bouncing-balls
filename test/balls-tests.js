@@ -3,13 +3,13 @@ var Vector2D = require('../src/js/vector2d.js').Vector2D;
 var Balls = require('../src/js/balls.js').Balls;
 
 describe('Balls', function() {
-    const localDimensions = {
+    var localDimensions = {
         width: 100,
         height: 100 * (2/3)
     };
-    const ballRadius = 1;
+    var ballRadius = 1;
     // Machine epsilon (an upper bound on the relative error due to rounding in floating point arithmetic)
-    const epsilon = 0.00000001;
+    var epsilon = 0.00000001;
     function nearEqual(a, b) {
         return Math.abs(a - b) < epsilon;
     }

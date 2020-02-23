@@ -26,9 +26,9 @@
     }
 
     Ball.prototype.collision = function(ball) {
-        const minDistance = ball.radius + this.radius;
-        const positionSub = this.position.sub(ball.position);
-        const distance = positionSub.length();
+        var minDistance = ball.radius + this.radius;
+        var positionSub = this.position.sub(ball.position);
+        var distance = positionSub.length();
 
         if (distance <= minDistance) {
             if (distance != 0) {
@@ -39,20 +39,20 @@
                     but this thing (dot(velocityAB_sub, positionAB_sub) / distance^2) is same for 2 velocities
                     because dot and length methods are commutative properties, and velocityAB_sub = -velocityBA_sub, same for positionSub
                 *********************************************************/
-                const coeff = this.velocity.sub(ball.velocity).dot(positionSub) / (distance * distance);
+                var coeff = this.velocity.sub(ball.velocity).dot(positionSub) / (distance * distance);
                 this.velocity = this.velocity.sub(positionSub.mult(coeff));
                 ball.velocity = ball.velocity.sub(positionSub.opposite().mult(coeff));
             }
 
             // apply a random vector if both velocities are zero vectors
-            const applyRandomVector = this.velocity.isZero() && ball.velocity.isZero();
+            var applyRandomVector = this.velocity.isZero() && ball.velocity.isZero();
             if (applyRandomVector) {
                 this.velocity = Vector2D.random();
                 ball.velocity = this.velocity.opposite();
             }
 
             // move balls outside of collision
-            const diff = (minDistance - distance) / 2 + 0.001; // add a very small value so they won't touch
+            var diff = (minDistance - distance) / 2 + 0.001; // add a very small value so they won't touch
             this.position = this.position.add(this.velocity.tryNormalize().mult(diff));
             ball.position = ball.position.add(ball.velocity.tryNormalize().mult(diff));
 
@@ -67,7 +67,7 @@
     /************************
      * HorizontalBall class *
     *************************/
-    const horizontalMovementProperties = {
+    var horizontalMovementProperties = {
         airResistance: 0.99, // slows down the speed in each frame
         hitResistance: 0.8, // slows down the speed when a wall is hitted
         velocityFactor: 0.2 // velocity factor (converts vector from the mouse dragging to this environment)
@@ -120,7 +120,7 @@
     /**********************
      * VerticalBall class *
     ***********************/
-    const verticalMovementProperties = {
+    var verticalMovementProperties = {
         airResistance: 0.995, // slows down the speed in each frame
         hitResistance: 0.8, // slows down the Y speed when the surface is hitted
         rollingResistance: 0.98, // slows down the X speed when rolling on the ground

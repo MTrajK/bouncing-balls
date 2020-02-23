@@ -4,18 +4,18 @@
     /**************
     ** CONSTANTS **
     ***************/
-    const fps = 60; // Note: if you change this, you'll need to addapt gravity and resistance logic in ball.js
-    const localDimensions = {
+    var fps = 60; // Note: if you change this, you'll need to addapt gravity and resistance logic in ball.js
+    var localDimensions = {
         width: 100, // 1 localDimensions.width is 1 local unit
         height: 100 * (2/3) // the canvas ratio is always 3:2
     };
-    const ballProperties = {
+    var ballProperties = {
         radius: 1, // local units
         startAngle: 0,
         endAngle: 2 * Math.PI,
         color: '#000000'
     };
-    const aimProperties = {
+    var aimProperties = {
         shrink: 0.6,
         maxSpeed: 30, // local units
         headPart: 0.2,
@@ -77,7 +77,7 @@
     }
 
     function drawBall(ballCoords, scaleRatio) {
-        const scaledCoords = ballCoords.mult(scaleRatio); // convert the coordinates in CANVAS size
+        var scaledCoords = ballCoords.mult(scaleRatio); // convert the coordinates in CANVAS size
 
         context.beginPath();
         context.arc(scaledCoords.X, scaledCoords.Y, ballProperties.radius * scaleRatio, // convert the radius too
@@ -92,21 +92,21 @@
         if (newBallDirection.isNearZero())
             return; // no direction, the mouse is in the start position
 
-        const directionLength = newBallDirection.length();
-        const radiusRatio = ballProperties.radius / directionLength;
-        const scaledShrink = aimProperties.shrink * scaleRatio;
+        var directionLength = newBallDirection.length();
+        var radiusRatio = ballProperties.radius / directionLength;
+        var scaledShrink = aimProperties.shrink * scaleRatio;
 
         // convert start and end points in CANVAS coordinates (using scaleRatio)
         // move the start point on the ball border (using the ball direction)
         // and adjust end point (using the start point)
-        const startPoint = newBallPosition.add(newBallDirection.mult(radiusRatio)).mult(scaleRatio);
-        const endPoint = startPoint.add(newBallDirection.mult(scaledShrink));
+        var startPoint = newBallPosition.add(newBallDirection.mult(radiusRatio)).mult(scaleRatio);
+        var endPoint = startPoint.add(newBallDirection.mult(scaledShrink));
 
         // calculate head strokes angle
-        const headLength = directionLength * scaledShrink * aimProperties.headPart;
-        const arrowAngle = newBallDirection.angle(); // angle between Y axis and the arrow direction
-        const leftStrokeAngle = arrowAngle - aimProperties.strokeAngle;
-        const rightStrokeAngle = arrowAngle + aimProperties.strokeAngle;
+        var headLength = directionLength * scaledShrink * aimProperties.headPart;
+        var arrowAngle = newBallDirection.angle(); // angle between Y axis and the arrow direction
+        var leftStrokeAngle = arrowAngle - aimProperties.strokeAngle;
+        var rightStrokeAngle = arrowAngle + aimProperties.strokeAngle;
 
         context.beginPath();
         // draw the body
@@ -147,7 +147,7 @@
             }
 
             // convert mouse coordinates to local coordinates
-            const dimensions = getCanvasDimensions();
+            var dimensions = getCanvasDimensions();
             mousePosition = new Vector2D(event.pageX, event.pageY).convertToLocal(dimensions);
             if (newBallPosition.isUndefined())
                 newBallPosition = mousePosition.clone(); // start aiming
@@ -209,7 +209,7 @@
     function update() {
         // check dimensions and clear canvas
         // the canvas is cleared when a new value is attached to dimensions (no matter if a same value)
-        const dimensions = getCanvasDimensions();
+        var dimensions = getCanvasDimensions();
         canvas.width = dimensions.width;
         canvas.height = dimensions.height;
 
