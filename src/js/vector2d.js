@@ -26,9 +26,8 @@
         // convert to unit vector, vector with length of 1 (distance between origin and this vector)
         // if zero vector, returns it
         var length = this.length();
-        if (length == 0)
-            return Vector2D.zero();
-        return this.div(this.length());
+
+        return length === 0 ? Vector2D.zero() : this.div(length);
     }
 
     Vector2D.prototype.convertToLocal = function(dimensions) {
