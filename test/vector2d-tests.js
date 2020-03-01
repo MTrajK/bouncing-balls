@@ -72,13 +72,13 @@ describe('Vector2D', function() {
             assert.equal(new Vector2D(0, -0.02).isNearZero(), false);
         });
     });
-    describe('is vector undefined', function () {
+    describe('is vector undefined', function() {
       it('should return true if vector properties are undefined, and false if are not', function() {
             assert.equal(new Vector2D().isUndefined(), true);
             assert.equal(new Vector2D(1, 2).isUndefined(), false);
       });
     });
-    describe('vector opposite', function () {
+    describe('vector opposite', function() {
       it('should flip vector properties to opposite', function() {
             assert.deepEqual(new Vector2D(1, -1), new Vector2D(-1, 1).opposite());
             assert.deepEqual(new Vector2D(-1, 1), new Vector2D(1, -1).opposite());
