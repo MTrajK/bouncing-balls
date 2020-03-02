@@ -5,6 +5,7 @@
     ** CONSTANTS **
     ***************/
     var fps = 60; // Note: if you change this, you'll need to addapt gravity and resistance logic in ball.js
+    var intervalMs = 1000 / fps;
     var localDimensions = {
         width: 100, // 1 localDimensions.width is 1 local unit
         height: 100 * (2/3) // the canvas ratio is always 3:2
@@ -27,7 +28,7 @@
     ** PROPERTIES USED FOR COMUNICATION BETWEEN HELPERS, EVENTS, UPDATE AND PUBLIC FUNCTIONS **
     *******************************************************************************************/
     var updateInterval, canvas, context, canvasDimensions, isAiming, balls,
-        isHorizontal, enabledCollisions, mousePosition, newBallPosition, newBallDirection;
+        ballType, enabledCollisions, mousePosition, newBallPosition, newBallDirection;
 
     /************
     ** HELPERS **
@@ -46,21 +47,12 @@
         isAiming = false;
 
         // save the new ball
-        var newBall;
-        if (isHorizontal)
-            newBall = new Balls.HorizontalBall(
-                newBallPosition.clone(),
-                newBallDirection.clone(),
-                ballProperties.radius,
-                localDimensions
-            );
-        else
-            newBall = new Balls.VerticalBall(
-                newBallPosition.clone(),
-                newBallDirection.clone(),
-                ballProperties.radius,
-                localDimensions
-            );
+        var newBall = new ballType(
+            newBallPosition.clone(),
+            newBallDirection.clone(),
+            ballProperties.radius,
+            localDimensions
+        );
         balls.push(newBall);
 
         // reset values
@@ -170,7 +162,7 @@
 
     function onMouseDown(event) {
         // button=0 is left mouse click, button=1 is middle mouse click, button=2 is right mouse click
-        if (event.button === 0) {
+        if (event.button == 0) {
             isAiming = true;
             onMouseMove(event); // calculate the start position
         } else if (isAiming) {
@@ -189,7 +181,7 @@
     }
 
     function onTouchStart(event) {
-        if (event.touches.length === 1) {
+        if (event.touches.length == 1) {
             event.touches[0].button = 0; // imitate a left mouse button click
             onMouseDown(event.touches[0]);
         } else {
@@ -245,8 +237,8 @@
     **********************/
     function init(canvasId, dimensionsId, horizontal, collisions) {
         // default values
-        isHorizontal = (typeof horizontal == 'undefined') ? true : horizontal;
-        enabledCollisions = (typeof collisions == 'undefined') ? true : collisions;
+        horizontal = (typeof horizontal != 'boolean') ? true : horizontal;
+        enabledCollisions = (typeof collisions != 'boolean') ? true : collisions;
 
         // init parameters
         canvas =  document.getElementById(canvasId);
@@ -256,6 +248,7 @@
         mousePosition = new Vector2D(); // X & Y should be represented with local coordinates
         newBallPosition = new Vector2D(); // X & Y should be represented with local coordinates
         newBallDirection = Vector2D.zero();
+        ballType = horizontal ? Balls.HorizontalBall : Balls.VerticalBall;
         balls = [];
 
         // add mouse event listeners
@@ -269,7 +262,7 @@
         canvas.addEventListener('touchend', onTouchEnd);
 
         // set interval
-        updateInterval = setInterval(update, 1000 / fps); // interval in milliseconds
+        updateInterval = setInterval(update, intervalMs);
     }
 
     function clear() {
