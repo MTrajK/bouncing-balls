@@ -1,5 +1,5 @@
 var assert = require('assert');
-var Vector2D = require('../src/js/vector2d.js').Vector2D;
+var Vector2D = require('../src/js/vector2d.js');
 
 describe('Vector2D', function() {
     describe('empty vector constructor', function() {
