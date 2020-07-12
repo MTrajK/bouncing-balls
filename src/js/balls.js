@@ -25,6 +25,29 @@
         };
     }
 
+    function moveOutOfCollision(ball1, ball2) {
+        var v = ball1.velocity.sub(ball2.velocity);
+        var p = ball1.position.sub(ball2.position);
+        var r = ball1.radius + ball2.radius;
+
+        // what if a==0???
+        var a = v.X*v.X - v.Y*v.Y;
+        var b = 2*(p.Y*v.Y - p.X*v.X);
+        var c = p.X*p.X - p.Y*p.Y - r*r;
+
+        var s = b*b - 4*a*c;
+        // what if s<0???
+        s = Math.sqrt(s);
+
+        // t1 and t2 from quadratic formula (need only the positive solution)
+        var t = (-b - s) / 2*a;
+        if (t < 0)
+            t = (-b + s) / 2*a;
+
+        ball1.position = ball1.position.sub(ball1.velocity.mult(t));
+        ball2.position = ball2.position.sub(ball2.velocity.mult(t));
+    }
+
     Ball.prototype.collision = function(ball) {
         var minDistance = ball.radius + this.radius;
         var positionSub = this.position.sub(ball.position);
