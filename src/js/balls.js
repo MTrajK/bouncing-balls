@@ -25,28 +25,51 @@
         };
     }
 
+    // TODO: ADD DETAILED DESCRIPTION ABOUT THE LOGIC
     function moveOutOfCollision(ball1, ball2) {
         var v = ball1.velocity.sub(ball2.velocity);
         var p = ball1.position.sub(ball2.position);
         var r = ball1.radius + ball2.radius;
 
-        // what if a==0???
-        var a = v.X*v.X - v.Y*v.Y;
-        var b = 2*(p.Y*v.Y - p.X*v.X);
-        var c = p.X*p.X - p.Y*p.Y - r*r;
+        // quadratic formula coeficients
+        var a = v.X*v.X + v.Y*v.Y;
+        var b = (-2)*(p.X*v.X + p.Y*v.Y);
+        var c = p.X*p.X + p.Y*p.Y - r*r;
 
-        var s = b*b - 4*a*c;
-        // what if s<0???
-        s = Math.sqrt(s);
+        // quadratic formula discriminant
+        var d = b*b - 4*a*c;
 
-        // t1 and t2 from quadratic formula (need only the positive solution)
-        var t = (-b - s) / 2*a;
+        // t1 and t2 from the quadratic formula (need only the positive solution)
+        var t = (-b - Math.sqrt(d)) / (2*a);
         if (t < 0)
-            t = (-b + s) / 2*a;
+            t = (-b + Math.sqrt(d)) / (2*a);
 
-        ball1.position = ball1.position.sub(ball1.velocity.mult(t));
-        ball2.position = ball2.position.sub(ball2.velocity.mult(t));
-    }
+        // calculate the old positions when the collision occured
+        var oldPosition1 = ball1.position.sub(ball1.velocity.mult(t));
+        var oldPosition2 = ball2.position.sub(ball2.velocity.mult(t));
+
+        var maxChange = ball1.radius * 3;
+
+        if ((a == 0) || (d < 0) ||
+            (oldPosition1.distance(ball1.position) > maxChange) ||
+            (oldPosition2.distance(ball2.position) > maxChange)) {
+            // 1) if 'a' is zero then both balls have equal velocities, no solution
+            // 2) the discriminant shouldn't be negative in this simulation, but just in case check it
+            // 3) the chages are too big, something is wrong
+
+            if (ball1.position.distance(ball2.position) == 0) {
+                ball1.position = ball1.position.add(new Vector2D(0, -r));
+            } else {
+                var diff = (r - ball1.position.distance(ball2.position)) / 2;
+                ball1.position = ball1.position.add(ball1.position.sub(ball2.position).tryNormalize().mult(diff));
+                ball2.position = ball2.position.add(ball2.position.sub(ball1.position).tryNormalize().mult(diff));
+            }
+        } else {
+            // use the old positions
+            ball1.position = oldPosition1;
+            ball2.position = oldPosition2;
+        }
+    };
 
     Ball.prototype.collision = function(ball) {
         var minDistance = ball.radius + this.radius;
@@ -54,36 +77,21 @@
         var distance = positionSub.length();
 
         if (distance <= minDistance) {
-            if (distance != 0) {
-                /*********************************************************
-                    The formula could be found here: https://en.wikipedia.org/wiki/Elastic_collision
-                    velocityA -= (dot(velocityAB_sub, positionAB_sub) / distance^2) * positionAB_sub
-                    velocityB -= (dot(velocityBA_sub, positionBA_sub) / distance^2) * positionBA_sub
-                    but this thing (dot(velocityAB_sub, positionAB_sub) / distance^2) is same for 2 velocities
-                    because dot and length methods are commutative properties, and velocityAB_sub = -velocityBA_sub, same for positionSub
-                *********************************************************/
-                var coeff = this.velocity.sub(ball.velocity).dot(positionSub) / (distance * distance);
-                this.velocity = this.velocity.sub(positionSub.mult(coeff));
-                ball.velocity = ball.velocity.sub(positionSub.opposite().mult(coeff));
-            }
+            moveOutOfCollision(this, ball);
 
-            // apply a random vector if both velocities are zero vectors
-            var applyRandomVector = this.velocity.isZero() && ball.velocity.isZero();
-            if (applyRandomVector) {
-                this.velocity = Vector2D.random();
-                ball.velocity = this.velocity.opposite();
-            }
+            positionSub = this.position.sub(ball.position);
+            distance = positionSub.length();
 
-            // move balls outside of collision
-            var diff = (minDistance - distance) / 2 + 0.001; // add a very small value so they won't touch
-            this.position = this.position.add(this.velocity.tryNormalize().mult(diff));
-            ball.position = ball.position.add(ball.velocity.tryNormalize().mult(diff));
-
-            // if a random vector is applied revert the zero vectors
-            if (applyRandomVector) {
-                this.velocity = Vector2D.zero();
-                ball.velocity = Vector2D.zero();
-            }
+            /*********************************************************
+                The formula could be found here: https://en.wikipedia.org/wiki/Elastic_collision
+                velocityA -= (dot(velocityAB_sub, positionAB_sub) / distance^2) * positionAB_sub
+                velocityB -= (dot(velocityBA_sub, positionBA_sub) / distance^2) * positionBA_sub
+                but this thing (dot(velocityAB_sub, positionAB_sub) / distance^2) is same for 2 velocities
+                because dot and length methods are commutative properties, and velocityAB_sub = -velocityBA_sub, same for positionSub
+            *********************************************************/
+            var coeff = this.velocity.sub(ball.velocity).dot(positionSub) / (distance * distance);
+            this.velocity = this.velocity.sub(positionSub.mult(coeff));
+            ball.velocity = ball.velocity.sub(positionSub.opposite().mult(coeff));
         }
     }
 
