@@ -25,8 +25,20 @@
         };
     }
 
-    // TODO: ADD DETAILED DESCRIPTION ABOUT THE LOGIC
-    function moveOutOfCollision(ball1, ball2) {
+    function moveBallsOutOfCollision(ball1, ball2) {
+        /*********************************************************
+            Find the positions of the balls when the collision occurred.
+            (because right they have collided)
+
+            old ball1.position = ball1.position - T * ball1.velocity
+            old ball2.position = ball2.position - T * ball2.velocity
+
+            In this moment T is unknown. Solve this equation to find T:
+            distance(old ball1.position, old ball2.position) = (ball1.radius + ball2.radius)
+
+            This can be solved using the Quadratic formula, because after simplifying
+            the left side of the equation we'll get something like: a*(T^2) + b*T + c = 0
+        *********************************************************/
         var v = ball1.velocity.sub(ball2.velocity);
         var p = ball1.position.sub(ball2.position);
         var r = ball1.radius + ball2.radius;
@@ -44,7 +56,7 @@
         if (t < 0)
             t = (-b + Math.sqrt(d)) / (2*a);
 
-        // calculate the old positions when the collision occured
+        // calculate the old positions (positions when the collision occurred)
         var oldPosition1 = ball1.position.sub(ball1.velocity.mult(t));
         var oldPosition2 = ball2.position.sub(ball2.velocity.mult(t));
 
@@ -58,8 +70,10 @@
             // 3) the chages are too big, something is wrong
 
             if (ball1.position.distance(ball2.position) == 0) {
+                // move only one ball up
                 ball1.position = ball1.position.add(new Vector2D(0, -r));
             } else {
+                // move both balls using the vector between these positions
                 var diff = (r - ball1.position.distance(ball2.position)) / 2;
                 ball1.position = ball1.position.add(ball1.position.sub(ball2.position).tryNormalize().mult(diff));
                 ball2.position = ball2.position.add(ball2.position.sub(ball1.position).tryNormalize().mult(diff));
@@ -72,15 +86,11 @@
     };
 
     Ball.prototype.collision = function(ball) {
-        var minDistance = ball.radius + this.radius;
-        var positionSub = this.position.sub(ball.position);
-        var distance = positionSub.length();
+        if (this.position.distance(ball.position) <= ball.radius + this.radius) {
+            moveBallsOutOfCollision(this, ball);
 
-        if (distance <= minDistance) {
-            moveOutOfCollision(this, ball);
-
-            positionSub = this.position.sub(ball.position);
-            distance = positionSub.length();
+            var positionSub = this.position.sub(ball.position);
+            var distance = positionSub.length();
 
             /*********************************************************
                 The formula could be found here: https://en.wikipedia.org/wiki/Elastic_collision
