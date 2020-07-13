@@ -18,6 +18,7 @@ Drawing in HTML Canvas, also plain CSS is used. (without third-part frameworks/c
 - Because of that, the whole physics engine (all maths and logics inside) works with local coordinates/units. The local width is always 100 local units, and the height is always 66.6667 local units. (because the canvas ratio is 3:2)
 - The simulation is not a 100% real-world simulation, because there are many more factors for moving/colliding in the real world like the ball spinning, the softness of balls, the type of walls, even the weather, and sound waves have influence in the real world.
 - More description of the physics you can find inside the code, for example, when the balls collide these formulas are used, [link](https://en.wikipedia.org/wiki/Elastic_collision).
+- Known issue: In "vertical" space/direction when the bottom is full with balls (when there is no space for a new ball) adding a new ball will make all balls go crazy (jumping randomly). This is because the balls will always collide and won't lose energy from colliding (at this moment I'm not sure how to solve this).
 
 
 ## Repo structure

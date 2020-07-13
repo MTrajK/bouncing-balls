@@ -7,6 +7,11 @@
         In the horizontal simulation, a ball loses energy when bouncing from a wall (the wall is harder and stationary) and air resistence.
         The ball also loses energy from the air resistence, hitting the ground, rolling on the ground and gravity in the vertical simulation
         (but not from spinning and some other 3d things possible in billiard and basketball).
+
+        Known issue:
+        In "vertical" space/direction when the bottom is full with balls (when there is no space for a new ball)
+        adding a new ball will make all balls go crazy (jumping randomly). This is because the balls will always
+        collide and won't lose energy from colliding (I'm not sure how to solve this).
     *********************************************************/
 
     /**************
@@ -28,7 +33,7 @@
     function moveBallsOutOfCollision(ball1, ball2) {
         /*********************************************************
             Find the positions of the balls when the collision occurred.
-            (because right they have collided)
+            (because right they have collided - they're overlapping)
 
             old ball1.position = ball1.position - T * ball1.velocity
             old ball2.position = ball2.position - T * ball2.velocity
@@ -83,7 +88,7 @@
             ball1.position = oldPosition1;
             ball2.position = oldPosition2;
         }
-    };
+    }
 
     Ball.prototype.collision = function(ball) {
         if (this.position.distance(ball.position) <= ball.radius + this.radius) {
